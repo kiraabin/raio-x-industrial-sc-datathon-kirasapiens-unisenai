@@ -10,6 +10,8 @@ Desafio prático de análise de dados e inteligência artificial, Bacharelado em
 ![Python](https://img.shields.io/badge/python-3.11%2B-informational)
 ![Dados](https://img.shields.io/badge/dados-Novo%20CAGED-informational)
 ![Região](https://img.shields.io/badge/regi%C3%A3o-SC-success)
+
+**[▶ Abrir o painel online](https://raio-x-industrial-sc.streamlit.app)**
 </div>
 
 ---
@@ -162,10 +164,10 @@ streamlit run dashboard/app.py      # abre em http://localhost:8501
 O painel roda no **Streamlit Community Cloud** direto deste repositório: arquivo principal `dashboard/app.py`,
 dependências em `dashboard/requirements.txt` e dados já versionados em `data/processed/` (não precisa do CSV bruto).
 
-Link: _a definir após a publicação_
+**Acesse: [raio-x-industrial-sc.streamlit.app](https://raio-x-industrial-sc.streamlit.app)**
 
 Para publicar ou republicar: [share.streamlit.io](https://share.streamlit.io) → **Create app** → repositório
-`kiraabin/raio-x-industrial-sc`, branch `main`, arquivo `dashboard/app.py`, Python 3.12. Cada push na `main`
+`kiraabin/raio-x-industrial-sc-datathon-kirasapiens-unisenai`, branch `main`, arquivo `dashboard/app.py`, Python 3.12. Cada push na `main`
 atualiza o painel sozinho.
 
 ---
