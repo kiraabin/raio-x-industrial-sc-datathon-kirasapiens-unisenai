@@ -367,13 +367,14 @@ with abas[2]:
         q["y"] = q["indice_pressao"].clip(-2.5, 3)
         q["tam"] = np.sqrt(q["movimentacoes"]) / np.sqrt(max(q["movimentacoes"].max(), 1)) * 44 + 7
         fig = go.Figure()
-        for x0, x1, y0, y1, cor, txt, xt, anc in [
-                (-3.3, 0.5, 0.5, 3.3, "rgba(239,68,68,0.08)", "APAGÃO", -3.1, "left"),
-                (0.5, 6.9, 0.5, 3.3, "rgba(249,115,22,0.10)", "EXPANSÃO SOB PRESSÃO", 6.7, "right"),
-                (0.5, 6.9, -2.8, 0.5, "rgba(37,99,235,0.07)", "EXPANSÃO ACELERADA", 6.7, "right")]:
+        for x0, x1, y0, y1, cor, txt, xt, anc, cor_txt in [
+                (-3.3, 0.5, 0.5, 3.3, "rgba(239,68,68,0.08)", "APAGÃO", -3.1, "left", "#DC2626"),
+                (0.5, 6.9, 0.5, 3.3, "rgba(249,115,22,0.10)", "EXPANSÃO SOB PRESSÃO", 6.7, "right", "#EA580C"),
+                (0.5, 6.9, -2.8, 0.5, "rgba(37,99,235,0.07)", "EXPANSÃO ACELERADA", 6.7, "right", "#2563EB"),
+                (-3.3, 0.5, -2.8, 0.5, "rgba(100,116,139,0.07)", "ESTÁVEL OU RETRAÇÃO", -3.1, "left", "#475569")]:
             fig.add_shape(type="rect", x0=x0, x1=x1, y0=y0, y1=y1, fillcolor=cor, line_width=0, layer="below")
-            fig.add_annotation(x=xt, y=3.12 if y0 > 0 else -2.6, text=f"<b>{txt}</b>", showarrow=False,
-                               xanchor=anc, font=dict(size=13, color=TEXTO_2))
+            fig.add_annotation(x=xt, y=3.1 if y0 > 0 else -2.55, text=f"<b>{txt}</b>", showarrow=False,
+                               xanchor=anc, font=dict(size=19, color=cor_txt), bgcolor="rgba(255,255,255,0.85)", borderpad=3)
         for diag in ["Estável", "Retração", "Expansão acelerada", "Expansão sob pressão", "Apagão de mão de obra"]:
             g = q[q["diagnostico"] == diag]
             if g.empty:
