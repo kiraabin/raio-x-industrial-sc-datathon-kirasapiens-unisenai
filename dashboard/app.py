@@ -16,6 +16,7 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import acionamento  # noqa: E402
+import territorio as terr  # noqa: E402
 import tema  # noqa: E402  (registra o template do Plotly)
 from dados import MIN_MOV, carregar, fmt_int, fmt_pct, fmt_rs, fmt_sinal, mensal, resumo  # noqa: E402
 from insights import gerar  # noqa: E402
@@ -106,7 +107,7 @@ POP = (d["municipios"]["pop_estimada_2026"].sum() if REG is None else
        d["municipios"].loc[d["municipios"]["regiao_intermediaria"] == REG, "pop_estimada_2026"].sum())
 ROBF = RSF[RSF["robusto"]]
 
-abas = st.tabs(["Visão geral", "Polos e diagnóstico", "Renda e escolaridade", "Macrofamílias (IA)",
+abas = st.tabs(["Visão geral", "Comparar territórios", "Polos e diagnóstico", "Renda e escolaridade", "Macrofamílias (IA)",
                 "Acionamento de parceiros", "Dados e método"])
 
 # ============================== 1. Visão geral ==============================
@@ -195,8 +196,128 @@ with abas[0]:
                       xaxis=dict(tickfont=dict(size=14, color=TEXTO)))
     plot(fig, 340)
 
-# ============================== 2. Polos e diagnóstico ==============================
+
+# ============================== 2. Comparar territórios ==============================
+COR_TERR = [AZUL, "#7C3AED", "#F59E0B"]
+ROTULO_TERR = ["Referência", "Comparação 1", "Comparação 2"]
+
+
+@st.cache_data(show_spinner=False)
+def base_territorio(nivel):
+    d_ = carregar()
+    return terr.base(d_["ind"], d_["municipios"], nivel)
+
+
+def badge(texto, nota, destaque_cor=None):
+    nome, cor = terr.faixa(nota)
+    borda = f"3px solid {destaque_cor}" if destaque_cor else f"2px solid {cor}"
+    fundo = {"baixo": "#F1F5F9", "médio": "#E2E8F0", "bom": "#FEF3C7", "muito bom": "#D1FAE5"}[nome]
+    tom = {"baixo": "#475569", "médio": "#1E293B", "bom": "#92400E", "muito bom": "#065F46"}[nome]
+    return (f"<span style='display:inline-block;flex:0 0 auto;white-space:nowrap;min-width:92px;text-align:center;"
+            f"font-weight:800;font-size:15px;line-height:1.4;"
+            f"padding:3px 10px;border-radius:999px;border:{borda};background:{fundo};color:{tom}'>{texto}</span>")
+
+
 with abas[1]:
+    c = st.columns([1.1, 1.3, 1.3, 1.3, 1.1])
+    nivel = c[0].radio("Tipo de comparação", ["Município", "Região imediata"], horizontal=False)
+    bt = base_territorio(nivel)
+    nomes = list(bt["nome"])
+    padrao = ["Joinville", "Blumenau", "Chapecó"]
+    idx = [nomes.index(n) if n in nomes else i for i, n in enumerate(padrao)]
+    ref = c[1].selectbox("Território de referência", nomes, index=idx[0])
+    comp1 = c[2].selectbox("Comparar com", ["—"] + nomes, index=idx[1] + 1)
+    comp2 = c[3].selectbox("Comparar com ", ["—"] + nomes, index=idx[2] + 1)
+    valores = c[4].radio("Valores", ["Reais", "Notas (0–20)"])
+    sel = [n for n in [ref, comp1, comp2] if n != "—"]
+    sel = list(dict.fromkeys(sel))
+    linhas_t = [bt[bt["nome"] == n].iloc[0] for n in sel]
+
+    cols = st.columns(len(linhas_t))
+    for i, (col, lt) in enumerate(zip(cols, linhas_t)):
+        pct = lt["nota_geral"] / 20 * 100
+        col.markdown(
+            f"<div style='background:linear-gradient(120deg,{COR_TERR[i]},{COR_TERR[i]}CC);border-radius:18px;"
+            f"padding:18px 22px;color:white;display:flex;justify-content:space-between;align-items:center'>"
+            f"<div><div style='font-size:24px;font-weight:900'>{lt['nome']}</div>"
+            f"<div style='font-size:15px;opacity:.95'>{ROTULO_TERR[i]} · {fmt_int(lt['pop'])} hab.</div></div>"
+            f"<div style='background:rgba(15,23,42,.25);border-radius:14px;padding:10px 16px;min-width:150px'>"
+            f"<div style='font-size:13px'>Nota geral</div><div style='font-size:32px;font-weight:900'>"
+            f"{terr.formatar(lt['nota_geral'], 'dec1')}</div><div style='height:6px;background:rgba(255,255,255,.35);"
+            f"border-radius:4px'><div style='width:{pct:.0f}%;height:6px;background:white;border-radius:4px'></div>"
+            f"</div></div></div>", unsafe_allow_html=True)
+
+    leg = " ".join(badge(f"{lo}–{hi}: {nome}", lo) for lo, hi, nome, _ in terr.FAIXAS)
+    st.markdown(f"<div style='margin:14px 0 6px;font-size:15px;color:{TEXTO_2}'>Qualificação das notas: {leg}</div>",
+                unsafe_allow_html=True)
+    visao = st.radio("Visão", ["Síntese", "Indicadores"], horizontal=True, label_visibility="collapsed")
+
+    if visao == "Indicadores":
+        eixo = st.radio("Eixo", terr.EIXOS, horizontal=True, label_visibility="collapsed")
+        inds = [x for x in terr.INDICADORES if x[2] == eixo]
+        cols = st.columns(len(linhas_t))
+        for i, (col, lt) in enumerate(zip(cols, linhas_t)):
+            itens = ""
+            for colname, nome, _, _, fmt in inds:
+                nota = lt[f"n_{colname}"]
+                melhor = len(linhas_t) > 1 and nota == max(x[f"n_{colname}"] for x in linhas_t)
+                txt = terr.formatar(lt[colname], fmt) if valores == "Reais" else f"{nota:.0f}"
+                itens += (f"<div style='display:flex;justify-content:space-between;align-items:center;padding:10px 0;"
+                          f"border-bottom:1px solid #EDF2F7;gap:10px'><span style='font-size:16px;color:{TEXTO}'>{nome}</span>"
+                          f"{badge(txt, nota, COR_TERR[i] if melhor else None)}</div>")
+            col.markdown(
+                f"<div style='border:2px solid #DBE4F0;border-radius:18px;padding:16px 20px;background:white'>"
+                f"<div style='display:flex;justify-content:space-between;border-bottom:2px solid #DBE4F0;"
+                f"padding-bottom:8px'><b style='font-size:19px;color:{TEXTO}'>"
+                f"<span style='color:{COR_TERR[i]}'>●</span> {eixo}</b>"
+                f"<span style='color:{TEXTO_2}'>nota do eixo: <b>{terr.formatar(lt[f'eixo_{eixo}'], 'dec1')}</b></span></div>"
+                f"{itens}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='nota'>Borda colorida = melhor nota entre os territórios comparados. Notas de 0 a 20 = "
+                    f"posição do território entre os {len(bt)} comparáveis "
+                    f"({'municípios' if nivel == 'Município' else 'regiões imediatas'} com 300+ movimentações "
+                    "industriais).</div>", unsafe_allow_html=True)
+    else:
+        c1, c2 = st.columns([5, 7])
+        with c1:
+            fig = go.Figure()
+            for i, lt in enumerate(linhas_t):
+                vals = [lt[f"eixo_{e}"] for e in terr.EIXOS]
+                rgba = "rgba({},{},{},0.14)".format(*(int(COR_TERR[i][j:j + 2], 16) for j in (1, 3, 5)))
+                fig.add_trace(go.Scatterpolar(r=vals + vals[:1], theta=terr.EIXOS + terr.EIXOS[:1], name=lt["nome"],
+                                              fill="toself", line=dict(color=COR_TERR[i], width=4),
+                                              fillcolor=rgba, marker=dict(size=9),
+                                              hovertemplate="%{theta}: %{r:.1f}<extra>" + lt["nome"] + "</extra>"))
+            fig.update_layout(title="Notas médias por eixo (0–20)",
+                              polar=dict(radialaxis=dict(range=[0, 20], tickvals=[5, 10, 15, 20],
+                                                         tickfont=dict(size=12, color=TEXTO_2), gridcolor="#E2E8F0"),
+                                         angularaxis=dict(tickfont=dict(size=15, color=TEXTO), gridcolor="#E2E8F0",
+                                                          rotation=90, direction="clockwise"),
+                                         bgcolor="white"),
+                              legend=dict(orientation="h", y=-0.08, x=0.5, xanchor="center"),
+                              margin=dict(l=110, r=110, t=70, b=50))
+            plot(fig, 540)
+        with c2:
+            for i, lt in enumerate(linhas_t):
+                mel, pio = terr.melhores_piores(lt, 3)
+                mel_html = "".join(f"<div style='display:flex;justify-content:space-between;align-items:center;"
+                                   f"gap:10px;padding:4px 0'>"
+                                   f"<span>{n}</span>{badge(f'{v:.0f}', v)}</div>" for n, v in mel)
+                pio_html = "".join(f"<div style='display:flex;justify-content:space-between;align-items:center;"
+                                   f"gap:10px;padding:4px 0'>"
+                                   f"<span>{n}</span>{badge(f'{v:.0f}', v)}</div>" for n, v in pio)
+                ac_t = AC[AC["regiao_imediata"] == lt["regiao_imediata"]]
+                st.markdown(
+                    f"<div style='border:2px solid #DBE4F0;border-left:8px solid {COR_TERR[i]};border-radius:18px;"
+                    f"padding:14px 18px;margin-bottom:12px;background:white;font-size:15px;color:{TEXTO}'>"
+                    f"<div style='display:grid;grid-template-columns:1fr 1fr;gap:18px'>"
+                    f"<div><b style='color:#059669;font-size:16px'>Melhores indicadores</b>{mel_html}</div>"
+                    f"<div><b style='color:#D97706;font-size:16px'>Piores indicadores</b>{pio_html}</div></div>"
+                    f"<div style='margin-top:10px;padding-top:10px;border-top:1px solid #EDF2F7;font-size:16px;"
+                    f"line-height:1.5'>🧭 <b>Leitura do território:</b> {terr.leitura(lt, ac_t)}</div></div>",
+                    unsafe_allow_html=True)
+
+# ============================== 3. Polos e diagnóstico ==============================
+with abas[2]:
     st.markdown("<div class='titulo'>Diagnóstico por polo (região imediata × setor)</div>"
                 "<div class='lead'><b>Índice de Pressão</b> = sinais de apagão (saídas a pedido, reposição e prêmio "
                 "salarial). <b>Índice de Expansão</b> = saldo por 10 mil habitantes. Acima de 0,5 = alerta. "
@@ -262,7 +383,7 @@ with abas[1]:
                        "Salário entrada": st.column_config.NumberColumn(format="R$ %d")})
 
 # ============================== 3. Renda e escolaridade ==============================
-with abas[2]:
+with abas[3]:
     st.markdown("<div class='titulo'>Renda e escolaridade explicam o gargalo?</div>"
                 "<div class='lead'>391 mil desligamentos analisados: a chance de pedir demissão cai com o salário e "
                 "quase não muda com a escolaridade.</div>", unsafe_allow_html=True)
@@ -328,7 +449,7 @@ with abas[2]:
         plot(fig, 440)
 
 # ============================== 4. Macrofamílias (IA) ==============================
-with abas[3]:
+with abas[4]:
     st.markdown("<div class='titulo'>Famílias de ocupações agrupadas por IA</div>"
                 "<div class='lead'>1.467 CBOs da indústria em 16 macrofamílias (LLM). Mostra se o gargalo está no "
                 "chão de fábrica ou nas funções técnicas e de gestão.</div>", unsafe_allow_html=True)
@@ -359,7 +480,7 @@ with abas[3]:
     plot(fig, 560)
 
 # ============================== 5. Acionamento de parceiros ==============================
-with abas[4]:
+with abas[5]:
     st.markdown("<div class='titulo'>Quem a FIESC aciona, onde e por quê</div>"
                 "<div class='lead'>Cada polo recebe <b>um</b> parceiro principal, escolhido por regra a partir dos "
                 "indicadores. Alertas frágeis e expansões pequenas ficam só em monitoramento.</div>",
@@ -410,7 +531,7 @@ with abas[4]:
         st.info("Nenhum polo neste recorte.")
 
 # ============================== 6. Dados e método ==============================
-with abas[5]:
+with abas[6]:
     lg = d["log_limpeza"]
     ind_n = lg.loc[lg["etapa"].str.startswith("Indústria"), "linhas"].iloc[0]
     st.markdown("<div class='titulo'>Dados, validação e método</div>", unsafe_allow_html=True)

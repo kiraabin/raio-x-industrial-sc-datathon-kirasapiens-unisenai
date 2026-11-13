@@ -51,11 +51,12 @@ Desafio prático de análise de dados e inteligência artificial, Bacharelado em
 ## Painel analítico (Python)
 
 O entregável oficial é o **painel de inteligência de mão de obra da FIESC** em Streamlit (`dashboard/app.py`).
-Filtros globais por região intermediária e setor industrial; 6 abas:
+Filtros globais por região intermediária e setor industrial; 7 abas:
 
 | Aba | O que mostra |
 |---|---|
 | Visão geral | 5 KPIs (saldo e saldo por 10 mil hab., movimentações, % de saídas a pedido, salário de entrada, polos em alerta), insights automáticos, mapa com raios por município, prioridades da FIESC e saldo mensal |
+| Comparar territórios | Referência e até 2 comparações (municípios ou regiões imediatas), com notas de 0 a 20 em 5 eixos (dinamismo, retenção, renda, qualificação, desenvolvimento), faixas baixo/médio/bom/muito bom, radar, melhores e piores indicadores e leitura automática do território (`dashboard/territorio.py`) |
 | Polos e diagnóstico | Matriz Índice de Pressão × Índice de Expansão, contagem por diagnóstico, robustez dos alertas e tabela completa dos polos |
 | Renda e escolaridade | % de saídas a pedido por faixa salarial e por escolaridade, dispersão salário × saída a pedido por polo e efeitos da regressão logística |
 | Macrofamílias (IA) | As famílias de ocupações (LLM) que mais perdem gente, salário de entrada e mapa de calor família × região |
@@ -127,7 +128,7 @@ Coloque o arquivo baixado em `raw/Novo_Caged_MOV_Limpo.csv`.
 | `backend/` | Pipeline em Python: `main.py` (ponto de entrada, por etapas), `validacao.py` (schema, domínios do dicionário e exclusões MOV × EXC), `pipeline.py` (carga, limpeza, junção e exportação), `indicadores.py` (indicadores e diagnóstico), `estatistica.py` (renda × escolaridade × pedido, sensibilidade do Índice de Pressão e sazonalidade), `exportar.py` (JSON para o frontend em `data/processed/api/`), `cbo_llm.py` (IA para as CBOs: exporta a amostra e o prompt, chama a API ou importa a resposta do LLM) |
 | `tests/` | Testes de consistência do backend (`pytest tests/`) |
 | `frontend/` | Frontend da aplicação em React (JavaScript) |
-| `dashboard/` | Painel analítico em Python (Streamlit), entregável oficial: `app.py` (abas do painel), `dados.py` (carga e agregações), `insights.py` (insights automáticos), `acionamento.py` (regras de acionamento de parceiros), `tema.py` (identidade visual) |
+| `dashboard/` | Painel analítico em Python (Streamlit), entregável oficial: `app.py` (abas do painel), `dados.py` (carga e agregações), `insights.py` (insights automáticos), `acionamento.py` (regras de acionamento de parceiros), `territorio.py` (notas e comparação de territórios), `tema.py` (identidade visual) |
 | `data/` | Apoio: regiões do IBGE, malha municipal, macrofamílias de CBO, `ia/` (prompt, amostra de subgrupos e resposta do LLM) e `processed/` (saídas do pipeline, incluindo `validacao_schema.csv`) |
 | `notebooks/` | Notebook documentado (`raio_x_industria_sc.ipynb`, com versão `.md`) cobrindo ingestão e validação, cruzamento com o IBGE, IA, indicadores, renda × escolaridade e exportação |
 
