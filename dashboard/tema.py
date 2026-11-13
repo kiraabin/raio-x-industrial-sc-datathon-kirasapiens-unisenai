@@ -116,7 +116,7 @@ button[data-baseweb="tab"][aria-selected="true"] p, button[role="tab"][aria-sele
 .fluxo .passo .n {{ font-size:28px; font-weight:900; color:{AZUL}; }}
 .fluxo .passo .d {{ font-size:15px; color:{TEXTO}; line-height:1.4; margin-top:2px; }}
 
-div[data-testid="stPlotlyChart"] {{ border:2px solid {BORDA}; border-radius:18px; padding:6px; background:white; }}
+div[data-testid="stPlotlyChart"] {{ box-shadow:0 0 0 2px {BORDA}; border-radius:18px; padding:0; background:white; overflow:visible; }}
 div[data-testid="stSelectbox"] label p {{ font-size:16px !important; font-weight:700; color:{TEXTO}; }}
 .nota {{ font-size:14px; color:{TEXTO_2}; margin-top:4px; }}
 </style>
