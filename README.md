@@ -62,7 +62,7 @@ Filtros globais por município e setor industrial, mais o filtro **➕ Bônus** 
 | Polos e diagnóstico | Matriz Índice de Pressão × Índice de Expansão, contagem por diagnóstico, robustez dos alertas e tabela completa dos polos |
 | Renda e escolaridade | % de saídas a pedido por faixa salarial e por escolaridade, dispersão salário × saída a pedido por polo e efeitos da regressão logística |
 | Macrofamílias (IA) | As famílias de ocupações (LLM) que mais perdem gente, salário de entrada e mapa de calor família × maiores municípios industriais |
-| Acionamento de parceiros | Um parceiro principal por polo (UniSENAI, Awtra ou empresas do polo; Way2 como secundário), escolhido por regra e com a justificativa tirada dos dados (`dashboard/acionamento.py`) |
+| Acionamento de parceiros | Só os 10 polos de maior impacto (6 alertas robustos e 4 expansões) recebem um parceiro principal (UniSENAI, Awtra ou empresas do polo; Way2 como secundário), escolhido por regra e com a justificativa tirada dos dados (`dashboard/acionamento.py`) |
 | Dados e método | Volumetria, validação de schema contra o dicionário, fontes usadas, premissas e limites |
 | ➕ Bônus: fontes externas | Só com o filtro ligado: alertas por região imediata, família (IA) × região intermediária e novos insights possíveis com outras fontes (RAIS, vagas do SINE, matrículas técnicas, consumo de energia) |
 

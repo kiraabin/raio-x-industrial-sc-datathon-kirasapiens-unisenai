@@ -2014,6 +2014,7 @@ Para cada polo com alerta ou expansão, `dashboard/acionamento.py` escolhe **um*
 - **Alerta robusto com salário de entrada 3%+ abaixo da mediana do setor** → empresas do polo (revisar piso);
 - **Alerta robusto com salário na média** → Awtra (integração, compliance e lideranças);
 - **Expansão acelerada com +200 vagas** → UniSENAI (formar para a família de ocupações mais contratada);
+- **Foco:** no máximo 6 alertas robustos (mais saídas a pedido/ano) e 4 expansões (maior saldo) recebem parceiro; os demais vão para a fila de monitoramento;
 - **Secundário:** setor eletrointensivo crescendo +500 vagas → Way2 (eficiência energética).
 
 
@@ -2030,10 +2031,10 @@ ac[ac['parceiro'] != 'Monitorar'][['setor', 'municipio_nome', 'diagnostico', 'pa
 ```
 
     parceiro
-    Monitorar           73
-    Awtra               25
-    Empresas do polo    19
-    UniSENAI             9
+    Monitorar           116
+    Awtra                 4
+    UniSENAI              4
+    Empresas do polo      2
     Way2 (secundário): 2
 
 
@@ -2123,39 +2124,39 @@ ac[ac['parceiro'] != 'Monitorar'][['setor', 'municipio_nome', 'diagnostico', 'pa
     </tr>
     <tr>
       <th>6</th>
-      <td>Vestuário e acessórios</td>
-      <td>Morro da Fumaça</td>
-      <td>Apagão de mão de obra</td>
-      <td>Empresas do polo</td>
-      <td>Têxtil, Vestuário, Couro e Calçados</td>
-      <td>Salário de entrada de R$ 1.961, 7% abaixo da m...</td>
+      <td>Veículos automotores</td>
+      <td>Navegantes</td>
+      <td>Expansão acelerada</td>
+      <td>UniSENAI</td>
+      <td>Produção de Base (Linha e Embalagem)</td>
+      <td>O polo criou +1.620 vagas em 12 meses; a famíl...</td>
     </tr>
     <tr>
       <th>7</th>
       <td>Alimentos</td>
-      <td>Ipumirim</td>
-      <td>Apagão de mão de obra</td>
-      <td>Awtra</td>
-      <td>Produção de Base (Linha e Embalagem)</td>
-      <td>O salário já está na média do setor (R$ 2.054)...</td>
+      <td>Chapecó</td>
+      <td>Expansão acelerada</td>
+      <td>UniSENAI</td>
+      <td>Agroindústria e Alimentos</td>
+      <td>O polo criou +1.273 vagas em 12 meses; a famíl...</td>
     </tr>
     <tr>
       <th>8</th>
-      <td>Vestuário e acessórios</td>
-      <td>Rio dos Cedros</td>
-      <td>Apagão de mão de obra</td>
-      <td>Awtra</td>
-      <td>Têxtil, Vestuário, Couro e Calçados</td>
-      <td>O salário já está na média do setor (R$ 2.130)...</td>
+      <td>Outros equip. de transporte</td>
+      <td>Navegantes</td>
+      <td>Expansão acelerada</td>
+      <td>UniSENAI</td>
+      <td>Produção de Base (Linha e Embalagem)</td>
+      <td>O polo criou +625 vagas em 12 meses; a família...</td>
     </tr>
     <tr>
       <th>9</th>
-      <td>Produtos de metal</td>
-      <td>Corupá</td>
-      <td>Apagão de mão de obra</td>
-      <td>Awtra</td>
-      <td>Metalmecânica e Montagem</td>
-      <td>O salário já está na média do setor (R$ 2.456)...</td>
+      <td>Alimentos</td>
+      <td>Guatambú</td>
+      <td>Expansão acelerada</td>
+      <td>UniSENAI</td>
+      <td>Agroindústria e Alimentos</td>
+      <td>O polo criou +551 vagas em 12 meses; a família...</td>
     </tr>
   </tbody>
 </table>

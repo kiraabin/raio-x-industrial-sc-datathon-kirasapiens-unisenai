@@ -524,7 +524,7 @@ with abas[4]:
 with abas[5]:
     st.markdown("<div class='titulo'>Quem a FIESC aciona, onde e por quê</div>"
                 "<div class='lead'>Cada polo recebe <b>um</b> parceiro principal, escolhido por regra a partir dos "
-                "indicadores. Alertas frágeis e expansões pequenas ficam só em monitoramento.</div>",
+                "indicadores. Para não dispersar esforço, só os <b>10 polos de maior impacto</b> em SC são acionados (6 alertas robustos com mais saídas a pedido e 4 maiores expansões). Os demais ficam em monitoramento, com o motivo.</div>",
                 unsafe_allow_html=True)
     ativos = ACF[ACF["parceiro"] != "Monitorar"]
     regras = [

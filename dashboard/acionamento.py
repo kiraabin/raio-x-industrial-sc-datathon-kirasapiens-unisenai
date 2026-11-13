@@ -17,6 +17,8 @@ Regras (avaliadas nesta ordem):
          → UniSENAI: formar para a família de ocupações que mais está sendo contratada.
     4. Saldo menor que 200 vagas
          → sem acionamento: apenas monitorar.
+  Limite (foco da FIESC): no máximo 6 alertas robustos (os de mais saídas a pedido/ano) e 4 expansões
+  (as de maior saldo) recebem parceiro. Os demais entram na fila de monitoramento, com o motivo.
   Secundário (só em expansão)
     5. Setor eletrointensivo com saldo de pelo menos 500 vagas
          → Way2: telemetria e eficiência energética para a planta que cresce.
@@ -34,7 +36,11 @@ def _br(v: float) -> str:
     return f"{v:,.0f}".replace(",", ".")
 
 
-def calcular(ind: pd.DataFrame, rs: pd.DataFrame, min_mov: int = 300) -> pd.DataFrame:
+LIMITE_ALERTAS, LIMITE_EXPANSAO = 6, 4
+
+
+def calcular(ind: pd.DataFrame, rs: pd.DataFrame, min_mov: int = 300,
+             limite_alertas: int | None = LIMITE_ALERTAS, limite_expansao: int | None = LIMITE_EXPANSAO) -> pd.DataFrame:
     sal_setor = ind[ind["admissao"] & ind["salario_valido"]].groupby("setor", observed=True)["salario"].median()
     dd = ind[~ind["admissao"]]
     pct_sc = dd["pedido"].mean()
@@ -110,4 +116,18 @@ def calcular(ind: pd.DataFrame, rs: pd.DataFrame, min_mov: int = 300) -> pd.Data
     out = pd.DataFrame(linhas)
     # Prioridade da FIESC: alertas robustos primeiro, depois pelo tamanho do impacto
     out["ordem"] = np.select([out["robusto"], out["diagnostico"].isin(ALERTAS)], [0, 1], 2)
-    return out.sort_values(["ordem", "impacto"], ascending=[True, False]).drop(columns="ordem").reset_index(drop=True)
+    out = out.sort_values(["ordem", "impacto"], ascending=[True, False]).reset_index(drop=True)
+    # Foco: só os polos de maior impacto recebem parceiro; os demais vão para a fila de monitoramento
+    for lim, eh_alerta in ((limite_alertas, True), (limite_expansao, False)):
+        if lim is None:
+            continue
+        sel = (out["parceiro"] != "Monitorar") & (out["diagnostico"].isin(ALERTAS) == eh_alerta)
+        fila = out.index[sel][lim:]
+        tipo = "alertas robustos" if eh_alerta else "polos em expansão"
+        out.loc[fila, "porque"] = (f"Indicaria {out.loc[fila, 'parceiro']}, mas está fora dos {lim} {tipo} de maior impacto "
+                                   "em SC: entra na fila do próximo ciclo. " + out.loc[fila, "porque"])
+        out.loc[fila, ["parceiro", "acao", "meta", "secundario", "secundario_porque"]] = [
+            "Monitorar", "Fila do próximo ciclo (fora do top de impacto).", "—", "", ""]
+    out["ordem2"] = (out["parceiro"] == "Monitorar").astype(int)
+    out = out.sort_values(["ordem2", "ordem", "impacto"], ascending=[True, True, False])
+    return out.drop(columns=["ordem", "ordem2"]).reset_index(drop=True)
