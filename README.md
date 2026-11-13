@@ -157,6 +157,19 @@ streamlit run dashboard/app.py      # abre em http://localhost:8501
 
 ---
 
+## Painel online
+
+O painel roda no **Streamlit Community Cloud** direto deste repositório: arquivo principal `dashboard/app.py`,
+dependências em `dashboard/requirements.txt` e dados já versionados em `data/processed/` (não precisa do CSV bruto).
+
+Link: _a definir após a publicação_
+
+Para publicar ou republicar: [share.streamlit.io](https://share.streamlit.io) → **Create app** → repositório
+`kiraabin/raio-x-industrial-sc`, branch `main`, arquivo `dashboard/app.py`, Python 3.12. Cada push na `main`
+atualiza o painel sozinho.
+
+---
+
 ## Metodologia
 
 **Limpeza** (volumetria em `data/processed/log_limpeza.csv`)
