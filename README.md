@@ -42,8 +42,27 @@ Desafio prático de análise de dados e inteligência artificial, Bacharelado em
 | 1 | **A indústria girou o quadro sem crescer** | 835.776 movimentações na indústria de transformação em 12 meses para um saldo de apenas **+1.098** vagas |
 | 2 | **O crescimento é operacional e se concentra no Oeste e em Itajaí** | A região intermediária de Chapecó soma +3.748 vagas, e as regiões imediatas de Itajaí (+2.558) e Chapecó (+2.351) lideram. Ocupações operacionais: +6.326. Técnicos: −2.729, gestão: −1.699, nível superior: −800 |
 | 3 | **O apagão é de retenção, não de diploma** | Agroindústria, produção de base, têxtil e vestuário: cerca de 55 a 60% dos desligamentos são **a pedido** do trabalhador, salário de admissão de R$ 2,0 a 2,2 mil e menos de 2% dos admitidos com ensino superior |
-| 4 | **Polos em alerta** | Pares região × setor com *apagão* ou *expansão sob pressão*: alimentos em Joaçaba, São Miguel do Oeste e Mafra; vestuário em Ibirama e Ituporanga; veículos em São Bento do Sul e Tubarão |
-| 5 | **Polos em expansão acelerada** | Alimentos em Chapecó, Concórdia, Xanxerê e Criciúma; têxtil em Brusque; máquinas e materiais elétricos em Joinville e Blumenau; veículos e equipamentos de transporte em Itajaí |
+| 4 | **16 polos em alerta robusto** | Dos 26 pares região × setor em alerta no cenário padrão, 16 se mantêm em pelo menos 80% das 36 calibrações testadas. Os maiores: alimentos em Joaçaba, vestuário em Ibirama e Ituporanga, veículos em São Bento do Sul e Tubarão, couro e calçados em Caçador |
+| 5 | **Salário segura; diploma, não** | Quem ganha até ~R$ 2 mil pede demissão em 57% das saídas; acima de ~R$ 3,6 mil, em 41%. Entre escolaridades, a taxa fica entre 51% e 55%. Pagar 10% acima da mediana da ocupação reduz em ~6% a chance de pedido de demissão (regressão logística, 391 mil desligamentos) |
+| 6 | **Polos em expansão acelerada** | Alimentos em Chapecó, Concórdia, Xanxerê e Criciúma; têxtil em Brusque; máquinas e materiais elétricos em Joinville e Blumenau; veículos e equipamentos de transporte em Itajaí |
+
+---
+
+## Painel analítico (Python)
+
+O entregável oficial é o **painel de inteligência de mão de obra da FIESC** em Streamlit (`dashboard/app.py`).
+Filtros globais por região intermediária e setor industrial; 6 abas:
+
+| Aba | O que mostra |
+|---|---|
+| Visão geral | 5 KPIs (saldo e saldo por 10 mil hab., movimentações, % de saídas a pedido, salário de entrada, polos em alerta), insights automáticos, mapa com raios por município, prioridades da FIESC e saldo mensal |
+| Polos e diagnóstico | Matriz Índice de Pressão × Índice de Expansão, contagem por diagnóstico, robustez dos alertas e tabela completa dos polos |
+| Renda e escolaridade | % de saídas a pedido por faixa salarial e por escolaridade, dispersão salário × saída a pedido por polo e efeitos da regressão logística |
+| Macrofamílias (IA) | As famílias de ocupações (LLM) que mais perdem gente, salário de entrada e mapa de calor família × região |
+| Acionamento de parceiros | Um parceiro principal por polo (UniSENAI, Awtra ou empresas do polo; Way2 como secundário), escolhido por regra e com a justificativa tirada dos dados (`dashboard/acionamento.py`) |
+| Dados e método | Volumetria, validação de schema contra o dicionário, premissas e limites |
+
+Visual: base branca com azul, letras grandes e cores vivas nos gráficos (`.streamlit/config.toml`, `dashboard/tema.py`).
 
 ---
 
@@ -105,12 +124,12 @@ Coloque o arquivo baixado em `raw/Novo_Caged_MOV_Limpo.csv`.
 |:---:|:---:|
 | `docs/` | Material do evento (slides do desafio e Guia do Participante) |
 | `raw/` | Dados brutos fornecidos (o CAGED fica fora do Git) |
-| `backend/` | Pipeline em Python: `main.py` (ponto de entrada, por etapas), `pipeline.py` (carga, limpeza, junção e exportação), `indicadores.py` (indicadores e diagnóstico), `estatistica.py` (renda × escolaridade × pedido, sensibilidade do Índice de Pressão e sazonalidade), `exportar.py` (JSON para o frontend em `data/processed/api/`), `cbo_llm.py` (prompt e API de IA para as CBOs) |
+| `backend/` | Pipeline em Python: `main.py` (ponto de entrada, por etapas), `validacao.py` (schema, domínios do dicionário e exclusões MOV × EXC), `pipeline.py` (carga, limpeza, junção e exportação), `indicadores.py` (indicadores e diagnóstico), `estatistica.py` (renda × escolaridade × pedido, sensibilidade do Índice de Pressão e sazonalidade), `exportar.py` (JSON para o frontend em `data/processed/api/`), `cbo_llm.py` (IA para as CBOs: exporta a amostra e o prompt, chama a API ou importa a resposta do LLM) |
 | `tests/` | Testes de consistência do backend (`pytest tests/`) |
 | `frontend/` | Frontend da aplicação em React (JavaScript) |
-| `dashboard/` | Dashboard analítico em Python (Streamlit): `app.py`, com 5 abas (mapa, matriz, macrofamílias, renda e escolaridade, recomendações) |
-| `data/` | Apoio: regiões do IBGE, malha municipal, macrofamílias de CBO e `processed/` (saídas do pipeline que alimentam o dashboard) |
-| `notebooks/` | Notebook documentado com o pipeline completo e as saídas |
+| `dashboard/` | Painel analítico em Python (Streamlit), entregável oficial: `app.py` (abas do painel), `dados.py` (carga e agregações), `insights.py` (insights automáticos), `acionamento.py` (regras de acionamento de parceiros), `tema.py` (identidade visual) |
+| `data/` | Apoio: regiões do IBGE, malha municipal, macrofamílias de CBO, `ia/` (prompt, amostra de subgrupos e resposta do LLM) e `processed/` (saídas do pipeline, incluindo `validacao_schema.csv`) |
+| `notebooks/` | Notebook documentado (`raio_x_industria_sc.ipynb`, com versão `.md`) cobrindo ingestão e validação, cruzamento com o IBGE, IA, indicadores, renda × escolaridade e exportação |
 
 ---
 
@@ -128,8 +147,8 @@ python backend/main.py estatistica exportar   # só algumas etapas
 # Testes de consistência
 pytest tests/
 
-# 2. Abra o dashboard (funciona mesmo sem o CSV bruto, porque lê data/processed/)
-streamlit run dashboard/app.py
+# 2. Abra o painel (funciona mesmo sem o CSV bruto, porque lê data/processed/)
+streamlit run dashboard/app.py      # abre em http://localhost:8501
 ```
 
 ---
