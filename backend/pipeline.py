@@ -25,6 +25,7 @@ import unicodedata
 import pandas as pd
 
 from indicadores import tabela, classificar
+import validacao
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "raw"
@@ -92,7 +93,7 @@ def carregar_municipios() -> pd.DataFrame:
     return m
 
 
-def carregar_caged(registro) -> pd.DataFrame:
+def carregar_caged(registro, mun: pd.DataFrame | None = None) -> pd.DataFrame:
     parquet = OUT / "caged_raw.parquet"
     if parquet.exists():
         df = pd.read_parquet(parquet)
@@ -102,6 +103,17 @@ def carregar_caged(registro) -> pd.DataFrame:
         df["idade"] = pd.to_numeric(df["idade"], errors="coerce")
         df.to_parquet(parquet)
     log("Carga inicial (todas as seções)", df, registro)
+
+    # Validação de schema e domínios contra o dicionário de dados
+    if mun is not None:
+        val = validacao.validar_schema(df, set(mun["cod_ibge"]))
+        val.to_csv(OUT / "validacao_schema.csv", index=False)
+        print(val[["regra", "registros", "status"]].to_string(index=False))
+
+    # Exclusões MOV x EXC (aplicadas se a base EXC estiver em raw/)
+    df, msg = validacao.aplicar_exclusoes(df)
+    print(msg)
+    log("Após exclusões MOV × EXC", df, registro)
 
     df = df[df["competênciamov"].between(*JANELA)]
     log(f"Competência dentro da janela {JANELA}", df, registro)
@@ -146,7 +158,7 @@ def enriquecer(df: pd.DataFrame, mun: pd.DataFrame) -> pd.DataFrame:
 def main():
     registro = []
     mun = carregar_municipios()
-    df = carregar_caged(registro)
+    df = carregar_caged(registro, mun)
     df = enriquecer(df, mun)
     assert df["regiao_intermediaria"].notna().all(), "movimentação sem município IBGE"
 

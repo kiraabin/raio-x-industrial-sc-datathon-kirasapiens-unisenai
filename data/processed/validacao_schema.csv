@@ -1,0 +1,19 @@
+regra,registros,status,detalhe,pct
+Colunas obrigatórias presentes,0,ok,19 colunas,0.0
+Tipo numérico em 'idade',2202,aviso,"0 não numéricos, 2202 nulos",0.000648
+Domínio de 'uf' conforme dicionário,0,ok,28 códigos válidos no dicionário,0.0
+Domínio de 'seção' conforme dicionário,0,ok,22 códigos válidos no dicionário,0.0
+Domínio de 'categoria' conforme dicionário,0,ok,10 códigos válidos no dicionário,0.0
+Domínio de 'graudeinstrução' conforme dicionário,0,ok,13 códigos válidos no dicionário,0.0
+Domínio de 'sexo' conforme dicionário,0,ok,3 códigos válidos no dicionário,0.0
+Domínio de 'tipomovimentação' conforme dicionário,0,ok,18 códigos válidos no dicionário,0.0
+Domínio de 'cbo2002ocupação' conforme dicionário,2117,aviso,2778 códigos válidos no dicionário; códigos CBO criados após o dicionário (ex.: 142360). Mantidos e classificados pelo subgrupo,0.000623
+Domínio de 'tamestabjan' conforme dicionário,0,ok,14 códigos válidos no dicionário,0.0
+UF = 42 (Santa Catarina),0,ok,fora do escopo,0.0
+"Saldo da movimentação em {-1, +1}",0,ok,inconsistente,0.0
+Município existe na base do IBGE,0,ok,sem chave de junção,0.0
+Categoria identificada (≠ 999),510,tratado,removido no pipeline,0.00015
+Tipo de movimentação identificado (≠ 99),0,ok,removido no pipeline,0.0
+Idade entre 14 e 90 anos,2216,tratado,mantido; idade não entra nos índices,0.000652
+Salário entre R$ 800 e R$ 60 mil,63787,tratado,mantido na contagem; fora das comparações salariais,0.018775
+Declaração fora do prazo,36940,tratado,mantida se a competência estiver na janela,0.010873

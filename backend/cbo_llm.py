@@ -9,13 +9,16 @@ Como funciona
    e pedimos uma classificação em JSON.
 3. O resultado vira `data/cbo_macrofamilias.csv`, usado pelo pipeline.
 
-O arquivo versionado no repositório foi gerado com o Claude (Anthropic)
-seguindo este mesmo prompt e revisado pela equipe. Para regenerar:
+Três modos de uso (o guia aceita chamada de API ou exportação/importação de amostras textuais):
 
-    export ANTHROPIC_API_KEY=...
-    python backend/cbo_llm.py
+    python backend/cbo_llm.py exportar          # gera data/ia/prompt_cbo.txt com a amostra pronta para colar no LLM
+    python backend/cbo_llm.py importar ARQ.json # importa a resposta do LLM e gera data/cbo_macrofamilias.csv
+    python backend/cbo_llm.py api               # chama a API da Anthropic direto (precisa de ANTHROPIC_API_KEY)
 
-Requer: pip install anthropic pandas pyarrow openpyxl
+O mapeamento versionado foi gerado pelo Claude (Anthropic) com este prompt, salvo em
+data/ia/resposta_llm.json e revisado pela equipe.
+
+Requer: pip install anthropic pandas pyarrow openpyxl (anthropic só no modo api)
 """
 import json
 import os
@@ -93,17 +96,64 @@ def classificar(texto_subgrupos: str, modelo: str = "claude-sonnet-5-5") -> dict
     return json.loads(texto[texto.find("{"): texto.rfind("}") + 1])
 
 
-if __name__ == "__main__":
-    caged = pd.read_parquet(ROOT / "data/processed/caged_raw.parquet",
-                            columns=["seção", "cbo2002ocupação"])
-    caged = caged[caged["seção"] == "C"]
-    dic = pd.read_excel(ROOT / "raw/Dicionario_de_dados.xlsx",
-                        sheet_name="cbo2002ocupação")
-    dic.columns = ["cod", "desc"]
-    dic = dic.dropna().astype({"cod": int})
+IA = ROOT / "data/ia"
 
-    entrada = montar_entrada(caged, dic)
-    mapa = classificar(entrada)
-    out = pd.DataFrame(sorted(mapa.items()), columns=["subgrupo", "macrofamilia"])
+
+def _entrada() -> str:
+    caged = pd.read_parquet(ROOT / "data/processed/industria.parquet", columns=["cbo"])
+    caged = caged.rename(columns={"cbo": "cbo2002ocupação"})
+    dic = pd.read_excel(ROOT / "raw/Dicionario_de_dados.xlsx", sheet_name="cbo2002ocupação")
+    dic.columns = ["cod", "desc"]
+    dic = dic.dropna()
+    dic["cod"] = pd.to_numeric(dic["cod"], errors="coerce")
+    dic = dic.dropna().astype({"cod": int})
+    return montar_entrada(caged, dic)
+
+
+def prompt_completo(entrada: str) -> str:
+    return PROMPT.format(familias="\n".join(f"- {f}" for f in MACROFAMILIAS), subgrupos=entrada)
+
+
+def salvar_mapa(mapa: dict) -> pd.DataFrame:
+    invalidas = {k: v for k, v in mapa.items() if v not in MACROFAMILIAS + ["Não identificado"]}
+    if invalidas:
+        raise ValueError(f"Macrofamílias fora da lista fechada: {invalidas}")
+    out = pd.DataFrame(sorted((int(k), v) for k, v in mapa.items()), columns=["subgrupo", "macrofamilia"])
     out.to_csv(ROOT / "data/cbo_macrofamilias.csv", index=False)
-    print(out["macrofamilia"].value_counts())
+    return out
+
+
+def exportar():
+    IA.mkdir(parents=True, exist_ok=True)
+    entrada = _entrada()
+    (IA / "amostra_subgrupos.txt").write_text(entrada, encoding="utf-8")
+    (IA / "prompt_cbo.txt").write_text(prompt_completo(entrada), encoding="utf-8")
+    print(f"{entrada.count(chr(10)) + 1} subgrupos exportados para {IA / 'prompt_cbo.txt'}")
+
+
+def importar(arquivo: str):
+    texto = Path(arquivo).read_text(encoding="utf-8")
+    mapa = json.loads(texto[texto.find("{"): texto.rfind("}") + 1])
+    out = salvar_mapa(mapa)
+    print(out["macrofamilia"].value_counts().to_string())
+
+
+def via_api():
+    IA.mkdir(parents=True, exist_ok=True)
+    mapa = classificar(_entrada())
+    (IA / "resposta_llm.json").write_text(json.dumps(mapa, ensure_ascii=False, indent=1), encoding="utf-8")
+    print(salvar_mapa(mapa)["macrofamilia"].value_counts().to_string())
+
+
+if __name__ == "__main__":
+    import sys
+
+    modo = sys.argv[1] if len(sys.argv) > 1 else "exportar"
+    if modo == "exportar":
+        exportar()
+    elif modo == "importar":
+        importar(sys.argv[2])
+    elif modo == "api":
+        via_api()
+    else:
+        sys.exit("Use: exportar | importar ARQUIVO.json | api")

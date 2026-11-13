@@ -1,0 +1,207 @@
+Você é especialista na Classificação Brasileira de Ocupações (CBO 2002)
+e no parque industrial de Santa Catarina.
+
+Classifique cada subgrupo de CBO abaixo em EXATAMENTE UMA das macrofamílias:
+- Gestão e Liderança
+- Engenharia, TI e P&D
+- Técnicos Industriais e Qualidade
+- Supervisão de Produção (Mestres e Encarregados)
+- Administrativo, Comercial e Negócios
+- Logística e Movimentação
+- Produção de Base (Linha e Embalagem)
+- Agroindústria e Alimentos
+- Têxtil, Vestuário, Couro e Calçados
+- Metalmecânica e Montagem
+- Processos Químicos, Plásticos, Papel e Cerâmica
+- Madeira e Móveis
+- Manutenção Industrial
+- Construção e Extração Mineral
+- Agropecuária, Pesca e Florestal
+- Serviços de Apoio
+
+Regras:
+- Use os títulos de ocupação como evidência principal.
+- Mestres, encarregados e supervisores de produção vão para
+  "Supervisão de Produção (Mestres e Encarregados)".
+- Ocupações de nível superior em engenharia, TI, química e design de produto
+  vão para "Engenharia, TI e P&D".
+- Responda SOMENTE com JSON no formato {"<subgrupo>": "<macrofamília>", ...}.
+
+Subgrupos:
+111: Analista de Planejamento e Orçamento - Apo; Secretario - Executivo
+121: Diretor Geral de Empresa e Organizacoes (Exceto de Interesse Publico); Diretor de Planejamento Estrategico
+122: Diretor de Producao e Operacoes da Industria de Transformacao, Extracao Mineral e Utilidades; Diretor de Operacoes Comerciais (Comercio Atacadista e Varejista); Diretor de Operacoes de Servicos de Transporte; Diretor de  Producao e Operacoes de Alimentacao; Diretor Comercial em Operacoes de Intermediacao Financeira
+123: Diretor Administrativo; Diretor Comercial; Diretor Administrativo e Financeiro; Diretor Financeiro; Diretor de Pesquisa e Desenvolvimento (P&D)
+131: Gerente de Instituicao Educacional da Area Privada; Gerente de Servicos de Saude; Diretor de Servicos Culturais
+141: Gerente de Producao e Operacoes; Gerente de Logistica (Armazenagem e Distribuicao); Gerente de Loja e Supermercado; Comerciante Varejista; Gerente de Operacoes de Servicos de Assistencia Tecnica
+142: Analista de Pesquisa de Mercado (A); Gerente Administrativo; Analista de Negocios (A); Gerente Comercial; Gerente de Vendas
+201: Especialista em Instrumentacao Metrologica; Especialista em Materiais de Referencia Metrologica; Especialista em Calibracoes Metrologicas; Especialista em Ensaios Metrologicos
+202: Tecnologo em Automacao Industrial; Engenheiro de Controle e Automacao (A); Tecnologo em Mecatronica
+203: Pesquisador de Engenharia e Tecnologia (Outras Areas da Engenharia); Pesquisador de Engenharia Mecanica; Pesquisador de Engenharia Eletrica e Eletronica; Pesquisador de Engenharia Metalurgica, de Minas e de Materiais; Pesquisador de Engenharia Quimica
+211: Especialista em Pesquisa Operacional; ?; Estatistico; Estatistico Teorico
+212: Analista de Desenvolvimento de Sistemas; Analista de Suporte Computacional; Analista de Sistemas de Automacao; Analista de Redes e de Comunicacao de Dados; Analista De Testes De Tecnologia Da Informação
+213: Quimico Industrial; Quimico; Tecnólogo em Processos Químicos; Oceanógrafo
+214: Engenheiro de Producao; Engenheiro de Seguranca do Trabalho; Engenheiro Mecanico; Engenheiro Civil; Engenheiro de Controle de Qualidade
+215: Piloto de Aeronaves; Vistoriador Naval
+221: Biologo; Biomédico
+222: Engenheiro de Alimentos; Engenheiro Florestal; Engenheiro Agronomo
+223: Nutricionista; Farmaceutico; Medico Veterinario; Enfermeiro do Trabalho; Farmaceutico Industrial
+224: Treinador Profissional de Futebol; Profissional De Educação Física Na Saúde; Tecnico de Desporto Individual e Coletivo (Exceto Futebol)
+225: Médico do Trabalho; Médico Clínico
+231: Professor de Nivel Superior na Educacao Infantil (Zero a Tres Anos)
+233: Instrutor de Aprendizagem e Treinamento Industrial; Professor de Aprendizagem e Treinamento Comercial; Professor de Tecnicas Comerciais e Secretariais; Professor Instrutor de Ensino e Aprendizagem em Servicos
+239: Orientador Educacional; Designer Educacional; Coordenador Pedagogico
+241: Advogado; Advogado de Empresa; Consultor Juridico
+242: Oficial de Inteligencia
+251: Economista Financeiro; Economista do Setor Publico; Economista Industrial; Psicologo do Trabalho; Economista Ambiental
+252: Analista de Recursos Humanos; Contador; Administrador; Analista de Pcp (Programacao e Controle da Producao); Analista Financeiro (Instituicoes Financeiras)
+253: Analista De Mídias Sociais; Redator de Publicidade; Agente Publicitario; Analista de Pesquisa de Mercado; Analista de Negocios
+254: Fiscal de Tributos Estadual; Tecnico de Tributos Estadual; Agente de Higiene e Seguranca; Auditor-Fiscal da Previdencia Social
+261: Revisor de Texto; Analista de Informacoes (Pesquisador de Informacoes de Rede); Redator de Textos Tecnicos; Documentalista; Fotografo
+262: Desenhista Industrial Grafico (Designer Grafico); Desenhista Industrial de Produto de Moda (Designer de Moda); Desenhista Industrial de Produto (Designer de Produto); Artista (Artes Visuais); Diretor de Arte
+263: Ministro de Culto Religioso
+271: Chefe de Cozinha (Desativado em 2010); Tecnólogo em Gastronomia
+300: Tecnico em Eletromecanica; Tecnico em Mecatronica - Automacao da Manufatura; Tecnico em Mecatronica - Robotica
+301: Tecnico de Laboratorio Industrial; Tecnico de Laboratorio de Analises Fisico-Quimicas (Materiais de Construcao); Tecnico de Apoio À Bioengenharia; Tecnico Quimico de Petroleo
+311: Colorista Textil; Tecnico em Plastico; Preparador de Tintas; Preparador de Tintas (Fabrica de Tecidos); Tecnico Quimico
+312: Tecnico de Obras Civis; Topografo; Tecnico de Saneamento
+313: Eletrotecnico; Tecnico Eletronico; Eletrotenico na Fabricacao, Montagem e Instalacao de Maquinas e Equipamentos; Tecnico Eletricista; Tecnico de Manutencao Eletrica
+314: Tecnico Mecanico; Tecnico em Manutencao de Maquinas; Tecnico Mecanico (Maquinas); Tecnico Mecanico (Calefacao, Ventilacao e Refrigeracao); Tecnico Mecanico na Manutencao de Ferramentas
+317: Programador de Sistemas de Informacao; Tecnico de Apoio ao Usuario de Informatica (Helpdesk); Programador de Maquinas - Ferramenta com Comando Numerico; Operador de Computador (Inclusive Microcomputador); Programador de Internet
+318: Desenhista Projetista Mecanico; Modelista de Roupas; Desenhista Tecnico Mecanico; Projetista de Moveis; Desenhista Projetista de Maquinas
+319: Tecnico em Confeccoes do Vestuario; Tecnico do Mobiliario
+321: Tecnico Agropecuario; Tecnico Florestal; Tecnico Agricola; Tecnico em Madeira
+322: Auxiliar de Protese Dentaria; Tecnico de Enfermagem do Trabalho; Tecnico de Enfermagem; Protetico Dentario; Tecnico em Optica e Optometria
+323: Tecnico em Pecuaria
+324: Tecnico em Patologia Clinica
+325: Tecnico de Alimentos; Enologo; Tecnico em Laboratorio de Farmacia; Aromista; Auxiliar Tecnico em Laboratorio de Farmacia
+328: Embalsamador
+331: Auxiliar de Desenvolvimento Infantil
+333: Instrutor de Cursos Livres
+341: Patrao de Pesca de Alto-Mar; Condutor Maquinista Maritimo; Piloto Comercial de Helicoptero (Exceto Linhas Aereas); Piloto Comercial (Exceto Linhas Aereas); Piloto Fluvial
+342: Tecnólogo em Logistica de Transporte; Operador de Transporte Multimodal; Supervisor de Carga e Descarga; Analista de Transporte em Comercio Exterior; Controlador de Servicos de Maquinas e Veiculos
+351: Tecnico em Seguranca no Trabalho; Tecnico de Contabilidade; Tecnico em Secretariado; Tecnico em Administracao; Auxiliar de Servicos Juridicos
+352: Metrologista; Agente de Defesa Ambiental; Agente Fiscal de Qualidade; Agente Fiscal Textil
+353: Tesoureiro de Banco; Tecnico de Operacoes e Servicos Bancarios - Credito Rural
+354: Assistente de Vendas; Comprador; Vendedor Pracista; Tecnico de Vendas; Tecnico em Atendimento e Vendas
+371: Recreador; Tecnico Grafico; Tecnico em Programacao Visual
+372: Operador de Rede de Teleprocessamento
+373: Tecnico de Sistemas Audiovisuais
+374: Montador de Filmes; Tecnico em Instalacao de Equipamentos de Audio; Editor de Tv  e Video; Projetista de Som; Operador de Projetor Cinematografico
+375: Designer de Interiores; Produtor De Moda; Visual Merchandiser; Designer de Vitrines; Decorador de Eventos
+376: Modelo de Modas
+377: Arbitro de Basquete
+391: Inspetor de Qualidade; Tecnico de Planejamento de Producao; Operador de Inspecao de Qualidade; Tecnico de Garantia da Qualidade; Controlador de Entrada e Saida
+395: Tecnico de Apoio em Pesquisa e Desenvolvimento (Exceto Agropecuario e Florestal); Tecnico de Apoio em Pesquisa e Desenvolvimento Agropecuario Florestal
+410: Supervisor Administrativo; Supervisor de Almoxarifado; Supervisor de Logistica; Supervisor de Orcamento; Supervisor de Tesouraria
+411: Auxiliar de Escritorio, em Geral; Assistente Administrativo; Auxiliar de Pessoal; Auxiliar de Servicos de Importacao e Exportacao; Agente de Microcrédito
+412: Continuo; Digitador; Datilografo
+413: Auxiliar de Contabilidade; Auxiliar de Faturamento; Analista de Folha de Pagamento; Caixa de Banco; Operador de Cobranca Bancaria
+414: Almoxarife; Expedidor de Mercadorias; Apontador de Producao; Auxiliar de Logistica; Armazenista
+415: Operador de Maquina Copiadora (Exceto Operador de Grafica Rapida); Arquivista de Documentos; Codificador de Dados; Analista De Informação Em Saúde; Entregador de Publicacoes
+420: Supervisor de Telemarketing e Atendimento; Supervisor de Caixas e Bilheteiros (Exceto Caixa de Banco); Supervisor de Recepcionistas; Supervisor de Cobranca; Supervisor de Entrevistadores e Recenseadores
+421: Operador de Caixa; Cobrador Interno; Atendente Comercial (Agencia Postal); Cobrador Externo
+422: Recepcionista, em Geral; Operador de Telemarketing Ativo e Receptivo; Operador de Telemarketing Ativo; Operador de Telemarketing Receptivo; Recepcionista de Consultorio Medico ou Dentario
+423: Despachante Documentalista; Despachante de Trânsito; ?
+424: Entrevistador de Pesquisas de Mercado; Entrevistador de Precos
+510: Supervisor de Lavanderia; Supervisor de Transportes; Chefe de Bar; Maître; Supervisor de Bombeiros
+511: Despachante de Transportes Coletivos (Exceto Trem); Comissario de Trem; Cobrador de Transportes Coletivos (Exceto Trem)
+512: Empregado  Domestico  nos Servicos Gerais; Empregado Domestico  Faxineiro; Empregado Domestico  Arrumador
+513: Auxiliar nos Serviços de Alimentação; Atendente de Lanchonete; Cozinheiro Geral; Garcom; Cozinheiro Industrial
+514: Faxineiro (Desativado em 2010); Trabalhador da Manutenção de Edificações; Auxiliar de Manutenção Predial; Zelador de Edificio; Trabalhador de Servicos de Limpeza e Conservacao de Areas Publicas
+515: Auxiliar de Producao Farmaceutica; Auxiliar de Laboratorio de Analises Clinicas; Auxiliar de Farmacia de Manipulacao; Auxiliar de Laboratorio de Imunobiologicos
+516: Auxiliar de Lavanderia; Tingidor de Roupas; Passador de Roupas, À Mao; Lavadeiro, em Geral; Lavador de Roupas  a Maquina
+517: Porteiro de Edificios; Vigia; Vigilante; Porteiro de Locais de Diversao; Bombeiro Civil
+519: Cartazeiro; Motociclista no Transporte de Documentos e Pequenos Volumes; Selecionador de Material Reciclável; Lavador de Veiculos; Catador de Material Reciclavel
+520: Supervisor de Vendas Comercial; Supervisor de Vendas de Servicos
+521: Vendedor de Comercio Varejista; Atendente de Lojas e Mercados; Promotor de Vendas; Vendedor em Comercio Atacadista; Repositor de Mercadorias
+523: Instalador de Cortinas e Persianas, Portas Sanfonadas e Boxe; Estampador De Placa De Identificação Veicular (Epiv); Aplicador De Vinil Autoadesivo; Instalador de Som e Acessorios de Veiculos
+524: Vendedor em Domicilio; Vendedor Ambulante; Feirante; Vendedor  Permissionario; Jornaleiro (Em Banca de Jornal)
+612: Produtor Agricola Polivalente; Produtor de Arvores Frutiferas; Produtor de Erva-Mate; Produtor na Olericultura de Frutos e Sementes; Produtor de Milho e Sorgo
+613: Apicultor
+620: Supervisor de Exploracao Agropecuaria; Supervisor de Exploracao Agricola
+621: Trabalhador Agropecuario em Geral
+622: Trabalhador Volante da Agricultura; Jardineiro; Trabalhador da Cultura de Erva-Mate; Trabalhador no Cultivo de Arvores Frutiferas; Caseiro (Agricultura)
+623: Trabalhador da Avicultura de Postura; Trabalhador de Pecuaria Polivalente; Operador de Incubadora; Trabalhador da Avicultura de Corte; Trabalhador da Suinocultura
+630: Supervisor da Area Florestal; Supervisor da Aquicultura
+631: Pescador Profissional; Pescador Industrial; Criador de Mexilhoes; Redeiro (Pesca)
+632: Trabalhador de Extracao Florestal, em Geral; Operador de Motosserra; Classificador de Toras; Trabalhador da Exploracao de Pupunha; Viveirista Florestal
+641: Operador de Maquinas de Beneficiamento de Produtos Agricolas; Tratorista Agricola
+642: Operador de Trator Florestal; Operador de Maquinas Florestais Estaticas; Operador de Colhedor Florestal
+643: Trabalhador na Operacao de Sistemas de Irrigacao por Superficie e Drenagem; Trabalhador na Operacao de Sistemas Convencionais de Irrigacao por Aspersao
+710: Mestre (Construcao Civil); Supervisor de Usina de Concreto; Fiscal de Patio de Usina de Concreto; Supervisor de Producao na Mineracao; Inspetor de Terraplenagem
+711: Operador de Carregadeira; Operador de Maquina de Extracao Continua (Minas de Carvao); Operador de Maquina Perfuratriz; Operador de Maquina Cortadora (Minas e Pedreiras); Sondador de Pocos (Exceto de Petroleo e Gas)
+712: Cortador de Pedras; Polidor de Pedras; Operador de Britador de Mandibulas; Torneiro (Lavra de Pedra); Tracador de Pedras
+715: Eletricista de Instalacoes; Pedreiro; Armador de Estrutura de Concreto Armado; Armador de Estrutura de Concreto; Operador de Bomba de Concreto
+716: Marmorista (Construcao); Vidraceiro; Pintor de Obras; Gesseiro; Acabador de Superficies de Concreto
+717: Servente de Obras; Vibradorista; Operador de Martelete; Poceiro (Edificacoes)
+720: Mestre (Industria de Maquinas e Outros Equipamentos Mecanicos); Mestre (Industria de Automotores e Material de Transportes); Mestre de Usinagem; Mestre de Fundicao; Mestre (Construcao Naval)
+721: Operador de Maquinas-Ferramenta Convencionais; Operador de Centro de Usinagem com Comando Numerico; Operador de Maquinas Operatrizes; Operador de Torno com Comando Numerico; Operador de Fresadora com Comando Numerico
+722: Operador de Acabamento de Pecas Fundidas; Fundidor de Metais; Moldador, a  Maquina; Operador de Maquina de Moldar Automatizada; Moldador, a  Mao
+723: Pintor de Estruturas Metalicas; Pintor, a  Pistola (Exceto Obras e Estruturas Metalicas); Galvanizador; Operador de Zincagem (Processo Eletrolitico); Decapador
+724: Soldador; Montador de Estruturas Metalicas; Serralheiro; Caldeireiro (Chapas de Ferro e Aco); Operador de Maquina de Dobrar Chapas
+725: Montador de Maquinas; Montador de Maquinas, Motores e Acessorios (Montagem em Serie); Montador de Veiculos (Linha de Montagem); Ajustador Mecanico; Ajustador Mecanico (Usinagem em Bancada e em Maquinas-Ferramentas)
+730: Supervisor de Montagem e Instalacao Eletroeletronica
+731: Operador de Linha de Montagem (Aparelhos Eletricos); Montador de Equipamentos Eletricos (Aparelhos Eletrodomesticos); Montador de Equipamentos Eletricos; Bobinador Eletricista, À Maquina; Montador de Equipamentos Eletronicos
+732: Instalador Eletricista (Tracao de Veiculos); Instalador de Sistemas Fotovoltaicos; Eletricista de Manutencao de Linhas Eletricas, Telefonicas e de Comunicacao de Dados; Emendador de Cabos Eletricos e Telefonicos (Aereos e Subterraneos); Instalador de Linhas Eletricas de Alta e Baixa - Tensao (Rede Aerea e Subterranea)
+740: Supervisor da Mecanica de Precisao
+741: Montador de Instrumentos de Precisao; Ajustador de Instrumentos de Precisao; Relojoeiro (Reparacao); Montador de Instrumentos de Optica
+750: Supervisor da Industria de Minerais nao Metalicos (Exceto Os Derivados de Petroleo e Carvao)
+751: Laminador de Metais Preciosos a  Mao; Joalheiro; Ourives; Trefilador (Joalheria e Ourivesaria); Lapidador (Joias)
+752: Ceramista; Ceramista Prensador; Lapidador de Vidros e Cristais; Operador de Esmaltadeira; Surfassagista
+760: Encarregado de Costura na Confeccao do Vestuario; Contramestre de Acabamento (Industria Textil); Encarregado de Corte na Confeccao do Vestuario; Mestre (Industria Textil e de Confeccoes); Supervisor da Confeccao de Artefatos de Tecidos, Couros e Afins
+761: Revisor de Tecidos Acabados; Operador Polivalente da Industria Textil; Tecelao de Malhas (Maquina Circular); Estampador de Tecido; Tecelao (Tear Automatico)
+762: Trabalhador Polivalente do Curtimento de Couros e Peles; Operador de Maquinas do Acabamento de Couros e Peles; Preparador de Couros Curtidos; Classificador de Peles; Classificador de Couros
+763: Costureiro na Confeccao em Serie; Costureiro, a  Maquina  na Confeccao em Serie; Ajudante de Confecção; Auxiliar de Corte (Preparacao da Confeccao de Roupas); Cortador de Roupas
+764: Trabalhador Polivalente da Confeccao de Calcados; Preparador de Calcados; Acabador de Calcados; Preparador de Solas e Palmilhas; Costurador de Calcados, a  Maquina
+765: Trabalhador do Acabamento de Artefatos de Tecidos e Couros; Estofador de Moveis; Colchoeiro (Confeccao de Colchoes); Confeccionador de Artefatos de Couro (Exceto Sapatos); Cortador de Artefatos de Couro (Exceto Roupas e Calcados)
+766: Operador de Acabamento (Industria Grafica); Acabador de Embalagens (Flexiveis e Cartotecnicas); Impressor (Serigrafia); Impressor de Corte e Vinco; Impressor Flexografico
+768: Tecelao (Tear Manual); Sapateiro (Calcados Sob Medida); Bordador, a  Mao; Pintor de Letreiros; Gravador, À Mao (Encadernacao)
+770: Mestre (Industria de Madeira e Mobiliario); Mestre Carpinteiro
+771: Marceneiro; Modelador de Madeira; Tanoeiro; Maquetista na Marcenaria
+772: Classificador de Madeira; Secador de Madeira; Impregnador de Madeira
+773: Operador de Maquina de Usinagem Madeira, em Geral; Operador de Maquina de Usinagem de Madeira (Producao em Serie); Serrador de Madeira; Operador de Serras (Usinagem de Madeira); Operador de Serras no Desdobramento de Madeira
+774: Montador de Moveis e Artefatos de Madeira
+775: Lustrador de Pecas de Madeira; Folheador de Moveis de Madeira; Entalhador  de Madeira; Marcheteiro
+776: Confeccionador de Escovas, Pinceis e Produtos Similares (A Maquina); Confeccionador de Moveis de Vime, Junco e Bambu; Confeccionador de Escovas, Pinceis e Produtos Similares (A Mao); Cesteiro; Esteireiro
+777: Carpinteiro Naval (Estaleiros); Carpinteiro de Carrocerias; Carpinteiro Naval (Embarcacoes); Carpinteiro Naval (Construcao de Pequenas Embarcacoes); Carpinteiro de Carretas
+780: Supervisor de Embalagem e Etiquetagem
+781: Condutor de Processos Robotizados de Soldagem; Condutor de Processos Robotizados de Pintura
+782: Motorista de Caminhao (Rotas Regionais e Internacionais); Operador de Empilhadeira; Motorista de Furgao ou Veiculo Similar; Motorista Operacional de Guincho; Motorista de Carro de Passeio
+783: Ajudante de Motorista; Carregador (Veiculos de Transportes Terrestres); Carregador (Armazem); Estivador; Agente de Patio
+784: Alimentador de Linha de Producao; Embalador, a Mao; Embalador, a Maquina; Operador de Maquina de Etiquetar; Operador de Maquina de Envasar Liquidos
+791: Artesão Tecelão; Artesão Ceramista; Artesão Moveleiro (Exceto Reciclado); Artesão do Couro; Artesão Trançador
+810: Mestre (Industria de Borracha e Plastico); Mestre de Producao Quimica; Mestre de Producao Farmaceutica; Mestre (Industria Petroquimica e Carboquimica)
+811: Moldador de Plastico por Injecao; Trefilador de Borracha; Trabalhador de Fabricacao de Tintas; Moldador de Plastico por Compressao; Laminador de Plastico
+812: Pirotecnico
+813: Operador de Producao (Quimica, Petroquimica e Afins); Operador de Extrusora (Quimica, Petroquimica e Afins); Operador de Processo (Quimica, Petroquimica e Afins); Operador de Calandra (Quimica, Petroquimica e Afins); Tecnico de Operacao (Quimica, Petroquimica e Afins)
+818: Assistente de Laboratorio Industrial; Auxiliar de Laboratorio de Analises Fisico-Quimicas
+820: Supervisor de Fabricacao de Produtos Ceramicos, Porcelanatos e Afins; Supervisor de Fabricacao de Produtos de Vidro; Mestre de Siderurgia; Mestre de Laminacao; Mestre de Aciaria
+821: Rebarbador de Metal; Operador de Area de Corrida; Operador de Tesoura Mecanica e Maquina de Corte, no Acabamento de Chapas e Metais; Operador de Laminador; Marcador de Produtos (Siderurgico e Metalurgico)
+822: Forneiro de Fundicao (Forno de Reducao); Forneiro de Reverbero; Forneiro de Reaquecimento e Tratamento Termico na Metalurgia; Forneiro de Cubilo
+823: Trabalhador da Elaboracao de Pre-Fabricados (Concreto Armado); Trabalhador da Elaboracao de Pre-Fabricados (Cimento Amianto); Preparador de Esmaltes (Ceramica); Extrusor de Fios ou Fibras de Vidro; Classificador e Empilhador de Tijolos Refratarios
+828: Oleiro (Fabricacao de Tijolos); Oleiro (Fabricacao de Telhas)
+830: Mestre (Industria de Celulose, Papel e Papelao)
+831: Cilindreiro na Preparacao de Pasta para Fabricacao de Papel; Operador de Digestor de Pasta para Fabricacao de Papel; Operador de Lavagem e Depuracao de Pasta para Fabricacao de Papel; Operador de Maquina de Secar Celulose
+832: Operador de Maquina de Fabricar Papel e Papelao; Operador de Rebobinadeira na Fabricacao de Papel e Papelao; Operador de Cortadeira de Papel; Operador de Maquina de Fabricar Papel (Fase Seca); Operador de Maquina de Fabricar Papel  (Fase Umida)
+833: Cartonageiro, a Mao (Caixas de Papelao); Operador de Maquina de Cortar e Dobrar Papelao; Cartonageiro, a Maquina; Confeccionador de Bolsas, Sacos e Sacolas e Papel, a Maquina; Confeccionador de Sacos de Celofane, a Maquina
+840: Supervisor de Producao da Industria Alimenticia; Supervisor da Industria de Bebidas; Chefe de Confeitaria; Supervisor da Industria de Fumo
+841: Trabalhador de Preparacao de Pescados (Limpeza); Trabalhador de Tratamento do Leite e Fabricacao de Laticinios e Afins; Operador de Maquinas de Fabricacao de Doces, Salgados e Massas Alimenticias; Cozinhador (Conservacao de Alimentos); Preparador de Racoes
+842: Auxiliar de Processamento de Fumo; Processador de Fumo; Classificador de Fumo
+848: Magarefe; Abatedor; Padeiro; Confeiteiro; Desossador
+860: Supervisor de Manutencao Eletromecanica (Utilidades); Supervisor de Operacao Eletrica (Geracao, Transmissao e Distribuicao de Energia Eletrica); Supervisor de Operacao de Fluidos (Distribuicao, Captacao, Tratamento de Agua, Gases, Vapor)
+861: Operador de Central Hidreletrica; Operador de Central Termoeletrica; Operador de Subestacao; Operador de Quadro de Distribuicao de Energia Eletrica
+862: Operador de Maquinas Fixas, em Geral; Operador de Caldeira; Operador de Estacao de Tratamento de Agua e Efluentes; Operador de Instalacao de Refrigeracao; Operador de Bateria de Gas de Hulha
+910: Encarregado de Manutencao Mecanica de Sistemas Operacionais; Supervisor de Manutencao de Maquinas Operatrizes e de Usinagem; Supervisor de Manutencao de Maquinas Industriais Texteis; Supervisor da Manutencao e Reparacao de Veiculos Leves; Supervisor da Manutencao e Reparacao de Veiculos Pesados
+911: Mecanico de Manutencao de Maquinas, em Geral; Mecanico de Manutencao de Maquinas Texteis; Mecanico de Manutencao e Instalacao de Aparelhos de Climatizacao e  Refrigeracao; Mecanico de Manutencao de Maquinas-Ferramentas (Usinagem de Metais); Mecanico de Manutencao de Motores Diesel (Exceto de Veiculos Automotores)
+913: Mecanico de Manutencao de Maquinas Agricolas; Mecanico de Manutencao de Maquinas de Construcao e Terraplenagem; Mecanico de Manutencao de Aparelhos de Levantamento; ?; Mecanico de Manutencao de Equipamento de Mineracao
+914: Mecanico de Manutencao de Automoveis, Motocicletas e Veiculos Similares; Mecanico de Veiculos Automotores a Diesel (Exceto Tratores); Mecanico de Manutencao de Motores e Equipamentos Navais; Mecanico de Manutencao de Empilhadeiras e Outros Veiculos de Cargas Leves; Mecanico de Manutencao de Tratores
+915: Tecnico em Manutencao de Equipamentos e Instrumentos Medico-Hospitalares; Tecnico em Manutencao de Instrumentos de Medicao e Precisao; Tecnico em Manutencao de Balancas
+919: Montador de Bicicletas; Lubrificador Industrial; Mecanico de Manutencao de Maquinas Cortadoras de Grama, Rocadeiras, Motosserras e Similares; Mecanico de Manutencao de Bicicletas e Veiculos Similares; Lubrificador de Veiculos Automotores (Exceto Embarcacoes)
+950: Supervisor de Manutencao Eletromecanica; Supervisor de Manutencao Eletromecanica Industrial, Comercial e Predial; Supervisor de Manutencao Eletrica de Alta Tensao Industrial; Encarregado de Manutencao Eletrica de Veiculos
+951: Eletricista de Manutencao Eletroeletronica; Instalador de Sistemas Eletroeletronicos de Seguranca; Monitor de Sistemas Eletronicos de Seguranca Interno; Mantenedor de Sistemas Eletroeletronicos de Seguranca; Monitor de Sistemas Eletronicos de Seguranca Externo
+953: Eletricista de Instalacoes (Embarcacoes); Eletricista de Instalacoes (Veiculos Automotores e Maquinas Operatrizes, Exceto Aeronaves e Embarcacoes)
+954: Operador Eletromecanico; Mecanico de Manutencao de Instalacoes Mecanicas de Edificios; Eletromecanico de Manutencao de Portas Automaticas; Eletromecanico de Manutencao de Elevadores; Reparador de Aparelhos Eletrodomesticos (Exceto Imagem e Som)
+991: Pintor de Veiculos (Reparacao); Conservador de Via Permanente (Trilhos); Funileiro de Veiculos (Reparacao); Montador de Veiculos (Reparacao); Soldador Aluminotermico em Conservacao de Trilhos
+992: Borracheiro; Lavador de Pecas; Auxiliar Geral de Conservacao de Vias Permanentes (Exceto Trilhos); Alinhador de Pneus; Encarregado Geral de Operacoes de Conservacao de Vias Permanentes (Exceto Trilhos)
+999: Não Identificado

@@ -6,12 +6,6 @@ subgrupo,macrofamilia
 131,Gestão e Liderança
 141,Gestão e Liderança
 142,Gestão e Liderança
-410,Gestão e Liderança
-420,Gestão e Liderança
-510,Gestão e Liderança
-520,Gestão e Liderança
-620,Gestão e Liderança
-630,Gestão e Liderança
 201,"Engenharia, TI e P&D"
 202,"Engenharia, TI e P&D"
 203,"Engenharia, TI e P&D"
@@ -20,44 +14,11 @@ subgrupo,macrofamilia
 213,"Engenharia, TI e P&D"
 214,"Engenharia, TI e P&D"
 215,"Engenharia, TI e P&D"
-222,"Engenharia, TI e P&D"
-262,"Engenharia, TI e P&D"
-317,"Engenharia, TI e P&D"
-395,"Engenharia, TI e P&D"
-300,Técnicos Industriais e Qualidade
-301,Técnicos Industriais e Qualidade
-311,Técnicos Industriais e Qualidade
-312,Técnicos Industriais e Qualidade
-313,Técnicos Industriais e Qualidade
-314,Técnicos Industriais e Qualidade
-318,Técnicos Industriais e Qualidade
-319,Técnicos Industriais e Qualidade
-321,Técnicos Industriais e Qualidade
-322,Técnicos Industriais e Qualidade
-323,Técnicos Industriais e Qualidade
-324,Técnicos Industriais e Qualidade
-325,Técnicos Industriais e Qualidade
-328,Técnicos Industriais e Qualidade
-351,Técnicos Industriais e Qualidade
-352,Técnicos Industriais e Qualidade
-391,Técnicos Industriais e Qualidade
-915,Técnicos Industriais e Qualidade
-710,Supervisão de Produção (Mestres e Encarregados)
-720,Supervisão de Produção (Mestres e Encarregados)
-730,Supervisão de Produção (Mestres e Encarregados)
-740,Supervisão de Produção (Mestres e Encarregados)
-750,Supervisão de Produção (Mestres e Encarregados)
-760,Supervisão de Produção (Mestres e Encarregados)
-770,Supervisão de Produção (Mestres e Encarregados)
-780,Supervisão de Produção (Mestres e Encarregados)
-810,Supervisão de Produção (Mestres e Encarregados)
-820,Supervisão de Produção (Mestres e Encarregados)
-830,Supervisão de Produção (Mestres e Encarregados)
-840,Supervisão de Produção (Mestres e Encarregados)
-860,Supervisão de Produção (Mestres e Encarregados)
-910,Supervisão de Produção (Mestres e Encarregados)
-950,Supervisão de Produção (Mestres e Encarregados)
 221,"Administrativo, Comercial e Negócios"
+222,"Engenharia, TI e P&D"
+223,Serviços de Apoio
+224,Serviços de Apoio
+225,Serviços de Apoio
 231,"Administrativo, Comercial e Negócios"
 233,"Administrativo, Comercial e Negócios"
 239,"Administrativo, Comercial e Negócios"
@@ -68,11 +29,30 @@ subgrupo,macrofamilia
 253,"Administrativo, Comercial e Negócios"
 254,"Administrativo, Comercial e Negócios"
 261,"Administrativo, Comercial e Negócios"
+262,"Engenharia, TI e P&D"
 263,"Administrativo, Comercial e Negócios"
 271,"Administrativo, Comercial e Negócios"
+300,Técnicos Industriais e Qualidade
+301,Técnicos Industriais e Qualidade
+311,Técnicos Industriais e Qualidade
+312,Técnicos Industriais e Qualidade
+313,Técnicos Industriais e Qualidade
+314,Técnicos Industriais e Qualidade
+317,"Engenharia, TI e P&D"
+318,Técnicos Industriais e Qualidade
+319,Técnicos Industriais e Qualidade
+321,Técnicos Industriais e Qualidade
+322,Técnicos Industriais e Qualidade
+323,Técnicos Industriais e Qualidade
+324,Técnicos Industriais e Qualidade
+325,Técnicos Industriais e Qualidade
+328,Técnicos Industriais e Qualidade
 331,"Administrativo, Comercial e Negócios"
 333,"Administrativo, Comercial e Negócios"
 341,"Administrativo, Comercial e Negócios"
+342,Logística e Movimentação
+351,Técnicos Industriais e Qualidade
+352,Técnicos Industriais e Qualidade
 353,"Administrativo, Comercial e Negócios"
 354,"Administrativo, Comercial e Negócios"
 371,"Administrativo, Comercial e Negócios"
@@ -82,58 +62,73 @@ subgrupo,macrofamilia
 375,"Administrativo, Comercial e Negócios"
 376,"Administrativo, Comercial e Negócios"
 377,"Administrativo, Comercial e Negócios"
+391,Técnicos Industriais e Qualidade
+395,"Engenharia, TI e P&D"
+410,Gestão e Liderança
 411,"Administrativo, Comercial e Negócios"
 412,"Administrativo, Comercial e Negócios"
 413,"Administrativo, Comercial e Negócios"
+414,Logística e Movimentação
 415,"Administrativo, Comercial e Negócios"
+420,Gestão e Liderança
 421,"Administrativo, Comercial e Negócios"
 422,"Administrativo, Comercial e Negócios"
 423,"Administrativo, Comercial e Negócios"
 424,"Administrativo, Comercial e Negócios"
+510,Gestão e Liderança
+511,Serviços de Apoio
+512,Serviços de Apoio
+513,Serviços de Apoio
+514,Serviços de Apoio
+515,Serviços de Apoio
+516,"Têxtil, Vestuário, Couro e Calçados"
+517,Serviços de Apoio
+519,Serviços de Apoio
+520,Gestão e Liderança
 521,"Administrativo, Comercial e Negócios"
 523,"Administrativo, Comercial e Negócios"
 524,"Administrativo, Comercial e Negócios"
-342,Logística e Movimentação
-414,Logística e Movimentação
-782,Logística e Movimentação
-783,Logística e Movimentação
-781,Produção de Base (Linha e Embalagem)
-784,Produção de Base (Linha e Embalagem)
-841,Agroindústria e Alimentos
-842,Agroindústria e Alimentos
-848,Agroindústria e Alimentos
-516,"Têxtil, Vestuário, Couro e Calçados"
-761,"Têxtil, Vestuário, Couro e Calçados"
-762,"Têxtil, Vestuário, Couro e Calçados"
-763,"Têxtil, Vestuário, Couro e Calçados"
-764,"Têxtil, Vestuário, Couro e Calçados"
-765,"Têxtil, Vestuário, Couro e Calçados"
-768,"Têxtil, Vestuário, Couro e Calçados"
-791,"Têxtil, Vestuário, Couro e Calçados"
+612,"Agropecuária, Pesca e Florestal"
+613,"Agropecuária, Pesca e Florestal"
+620,Gestão e Liderança
+621,"Agropecuária, Pesca e Florestal"
+622,"Agropecuária, Pesca e Florestal"
+623,"Agropecuária, Pesca e Florestal"
+630,Gestão e Liderança
+631,"Agropecuária, Pesca e Florestal"
+632,"Agropecuária, Pesca e Florestal"
+641,"Agropecuária, Pesca e Florestal"
+642,"Agropecuária, Pesca e Florestal"
+643,"Agropecuária, Pesca e Florestal"
+710,Supervisão de Produção (Mestres e Encarregados)
+711,Construção e Extração Mineral
+712,Construção e Extração Mineral
+715,Construção e Extração Mineral
+716,Construção e Extração Mineral
+717,Construção e Extração Mineral
+720,Supervisão de Produção (Mestres e Encarregados)
 721,Metalmecânica e Montagem
 722,Metalmecânica e Montagem
 723,Metalmecânica e Montagem
 724,Metalmecânica e Montagem
 725,Metalmecânica e Montagem
+730,Supervisão de Produção (Mestres e Encarregados)
 731,Metalmecânica e Montagem
 732,Metalmecânica e Montagem
+740,Supervisão de Produção (Mestres e Encarregados)
 741,Metalmecânica e Montagem
+750,Supervisão de Produção (Mestres e Encarregados)
 751,Metalmecânica e Montagem
-821,Metalmecânica e Montagem
-822,Metalmecânica e Montagem
 752,"Processos Químicos, Plásticos, Papel e Cerâmica"
+760,Supervisão de Produção (Mestres e Encarregados)
+761,"Têxtil, Vestuário, Couro e Calçados"
+762,"Têxtil, Vestuário, Couro e Calçados"
+763,"Têxtil, Vestuário, Couro e Calçados"
+764,"Têxtil, Vestuário, Couro e Calçados"
+765,"Têxtil, Vestuário, Couro e Calçados"
 766,"Processos Químicos, Plásticos, Papel e Cerâmica"
-811,"Processos Químicos, Plásticos, Papel e Cerâmica"
-812,"Processos Químicos, Plásticos, Papel e Cerâmica"
-813,"Processos Químicos, Plásticos, Papel e Cerâmica"
-818,"Processos Químicos, Plásticos, Papel e Cerâmica"
-823,"Processos Químicos, Plásticos, Papel e Cerâmica"
-828,"Processos Químicos, Plásticos, Papel e Cerâmica"
-831,"Processos Químicos, Plásticos, Papel e Cerâmica"
-832,"Processos Químicos, Plásticos, Papel e Cerâmica"
-833,"Processos Químicos, Plásticos, Papel e Cerâmica"
-861,"Processos Químicos, Plásticos, Papel e Cerâmica"
-862,"Processos Químicos, Plásticos, Papel e Cerâmica"
+768,"Têxtil, Vestuário, Couro e Calçados"
+770,Supervisão de Produção (Mestres e Encarregados)
 771,Madeira e Móveis
 772,Madeira e Móveis
 773,Madeira e Móveis
@@ -141,38 +136,43 @@ subgrupo,macrofamilia
 775,Madeira e Móveis
 776,Madeira e Móveis
 777,Madeira e Móveis
+780,Supervisão de Produção (Mestres e Encarregados)
+781,Produção de Base (Linha e Embalagem)
+782,Logística e Movimentação
+783,Logística e Movimentação
+784,Produção de Base (Linha e Embalagem)
+791,"Têxtil, Vestuário, Couro e Calçados"
+810,Supervisão de Produção (Mestres e Encarregados)
+811,"Processos Químicos, Plásticos, Papel e Cerâmica"
+812,"Processos Químicos, Plásticos, Papel e Cerâmica"
+813,"Processos Químicos, Plásticos, Papel e Cerâmica"
+818,"Processos Químicos, Plásticos, Papel e Cerâmica"
+820,Supervisão de Produção (Mestres e Encarregados)
+821,Metalmecânica e Montagem
+822,Metalmecânica e Montagem
+823,"Processos Químicos, Plásticos, Papel e Cerâmica"
+828,"Processos Químicos, Plásticos, Papel e Cerâmica"
+830,Supervisão de Produção (Mestres e Encarregados)
+831,"Processos Químicos, Plásticos, Papel e Cerâmica"
+832,"Processos Químicos, Plásticos, Papel e Cerâmica"
+833,"Processos Químicos, Plásticos, Papel e Cerâmica"
+840,Supervisão de Produção (Mestres e Encarregados)
+841,Agroindústria e Alimentos
+842,Agroindústria e Alimentos
+848,Agroindústria e Alimentos
+860,Supervisão de Produção (Mestres e Encarregados)
+861,"Processos Químicos, Plásticos, Papel e Cerâmica"
+862,"Processos Químicos, Plásticos, Papel e Cerâmica"
+910,Supervisão de Produção (Mestres e Encarregados)
 911,Manutenção Industrial
 913,Manutenção Industrial
 914,Manutenção Industrial
+915,Técnicos Industriais e Qualidade
 919,Manutenção Industrial
+950,Supervisão de Produção (Mestres e Encarregados)
 951,Manutenção Industrial
 953,Manutenção Industrial
 954,Manutenção Industrial
 991,Manutenção Industrial
 992,Manutenção Industrial
-711,Construção e Extração Mineral
-712,Construção e Extração Mineral
-715,Construção e Extração Mineral
-716,Construção e Extração Mineral
-717,Construção e Extração Mineral
-612,"Agropecuária, Pesca e Florestal"
-613,"Agropecuária, Pesca e Florestal"
-621,"Agropecuária, Pesca e Florestal"
-622,"Agropecuária, Pesca e Florestal"
-623,"Agropecuária, Pesca e Florestal"
-631,"Agropecuária, Pesca e Florestal"
-632,"Agropecuária, Pesca e Florestal"
-641,"Agropecuária, Pesca e Florestal"
-642,"Agropecuária, Pesca e Florestal"
-643,"Agropecuária, Pesca e Florestal"
-223,Serviços de Apoio
-224,Serviços de Apoio
-225,Serviços de Apoio
-511,Serviços de Apoio
-512,Serviços de Apoio
-513,Serviços de Apoio
-514,Serviços de Apoio
-515,Serviços de Apoio
-517,Serviços de Apoio
-519,Serviços de Apoio
 999,Não identificado

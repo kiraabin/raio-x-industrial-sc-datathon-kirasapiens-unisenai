@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-13T01:54:52+00:00",
+  "gerado_em": "2026-11-13T05:08:50+00:00",
   "base": "Novo CAGED SC, indústria de transformação (CNAE seção C)",
   "janela": {
     "inicio": 202509,
@@ -269,7 +269,7 @@
     },
     "log_limpeza": {
       "arquivo": "log_limpeza.json",
-      "linhas": 5,
+      "linhas": 6,
       "colunas": [
         "etapa",
         "linhas"
@@ -296,6 +296,17 @@
         "regiao_imediata",
         "cod_reg_intermediaria",
         "regiao_intermediaria"
+      ]
+    },
+    "validacao_schema": {
+      "arquivo": "validacao_schema.json",
+      "linhas": 18,
+      "colunas": [
+        "regra",
+        "registros",
+        "status",
+        "detalhe",
+        "pct"
       ]
     }
   }
