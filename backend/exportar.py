@@ -17,6 +17,14 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
+# Os JSONs do frontend React (protótipo, não é o entregável oficial) agrupam por região do IBGE, um dado externo.
+# Sem data/externos/regioes_ibge.csv, agrupam por município (base fornecida pelo desafio).
+
+
+def _territorio(ind: pd.DataFrame, nivel: str) -> list[str]:
+    if "regiao_intermediaria" in ind.columns:
+        return ["regiao_intermediaria", "regiao_imediata"] if nivel == "imediata" else ["regiao_intermediaria"]
+    return ["municipio_nome"]
 OUT = ROOT / "data/processed"
 API = OUT / "api"
 
@@ -26,7 +34,7 @@ def cubo(ind: pd.DataFrame) -> pd.DataFrame:
                    desl=(~ind["admissao"]).astype(int),
                    ped=(~ind["admissao"] & ind["pedido"]).astype(int),
                    adm_superior=(ind["admissao"] & ind["graudeinstrução"].isin({9, 10, 11, 80})).astype(int))
-    c = (x.groupby(["regiao_intermediaria", "regiao_imediata", "setor", "competênciamov"], observed=True)
+    c = (x.groupby(_territorio(ind, "imediata") + ["setor", "competênciamov"], observed=True)
          .agg(admissoes=("adm", "sum"), desligamentos=("desl", "sum"),
               a_pedido=("ped", "sum"), adm_superior=("adm_superior", "sum"))
          .reset_index())
@@ -51,17 +59,18 @@ def salario_hist(ind: pd.DataFrame) -> pd.DataFrame:
     a = ind[ind["admissao"] & ind["salario_valido"]]
     b = bordas_salario()
     idx = np.clip(np.searchsorted(b, a["salario"].to_numpy(), side="right") - 1, 0, len(b) - 2)
-    h = (a.assign(i=idx).groupby(["regiao_intermediaria", "setor", "i"], observed=True)
+    t = _territorio(ind, "intermediaria")
+    h = (a.assign(i=idx).groupby(t + ["setor", "i"], observed=True)
          .size().reset_index(name="n"))
     h["lo"] = b[h["i"]]
     h["hi"] = b[h["i"] + 1]
-    return h[["regiao_intermediaria", "setor", "lo", "hi", "n"]]
+    return h[t + ["setor", "lo", "hi", "n"]]
 
 
 def escolaridade_cubo(ind: pd.DataFrame) -> pd.DataFrame:
     x = ind.assign(esc=ind["graudeinstrução"].map(ESC_MAP),
                    mov=np.where(ind["admissao"], "Admitidos", "Desligados")).dropna(subset=["esc"])
-    return (x.groupby(["regiao_intermediaria", "setor", "mov", "esc"], observed=True)
+    return (x.groupby(_territorio(ind, "intermediaria") + ["setor", "mov", "esc"], observed=True)
             .size().reset_index(name="n"))
 
 

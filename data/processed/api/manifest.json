@@ -1,5 +1,5 @@
 {
-  "gerado_em": "2026-11-13T05:08:50+00:00",
+  "gerado_em": "2026-11-13T05:35:43+00:00",
   "base": "Novo CAGED SC, indústria de transformação (CNAE seção C)",
   "janela": {
     "inicio": 202509,
@@ -152,6 +152,28 @@
     },
     "est_sensibilidade_pares": {
       "arquivo": "est_sensibilidade_pares.json",
+      "linhas": 3105,
+      "colunas": [
+        "cod_ibge",
+        "setor",
+        "movimentacoes",
+        "saldo",
+        "pct_pedido_demissao",
+        "premio_salarial",
+        "indice_reposicao",
+        "indice_pressao",
+        "diagnostico",
+        "cenarios_avaliados",
+        "cenarios_alerta",
+        "pct_cenarios_alerta",
+        "indice_pressao_sem_reposicao",
+        "diagnostico_sem_reposicao",
+        "estabilidade",
+        "municipio_nome"
+      ]
+    },
+    "est_sensibilidade_pares_regiao": {
+      "arquivo": "est_sensibilidade_pares_regiao.json",
       "linhas": 503,
       "colunas": [
         "regiao_imediata",
@@ -217,6 +239,33 @@
         "indice_pressao",
         "indice_expansao",
         "diagnostico"
+      ]
+    },
+    "ind_municipio_setor": {
+      "arquivo": "ind_municipio_setor.json",
+      "linhas": 3105,
+      "colunas": [
+        "cod_ibge",
+        "setor",
+        "admissoes",
+        "desligamentos",
+        "saldo",
+        "movimentacoes",
+        "indice_reposicao",
+        "pct_pedido_demissao",
+        "salario_mediano_adm",
+        "premio_salarial",
+        "pct_superior_adm",
+        "pct_ate_fundamental_adm",
+        "idade_media_adm",
+        "populacao",
+        "saldo_10k_hab",
+        "indice_pressao",
+        "indice_expansao",
+        "diagnostico",
+        "municipio_nome",
+        "regiao_imediata",
+        "regiao_intermediaria"
       ]
     },
     "ind_regiao_macrofamilia": {

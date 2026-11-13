@@ -42,32 +42,46 @@ def _centroide(geom: dict) -> tuple[float, float]:
     return melhor
 
 
+EXT = ROOT / "data/externos"
+
+
 @st.cache_data(show_spinner=False)
 def carregar() -> dict:
+    """Carrega as saídas do pipeline.
+
+    Núcleo (só bases do desafio): microdados da indústria, municípios, município × setor, macrofamílias,
+    estatística e validação. Bônus (fontes externas, em data/externos/): malha municipal e regiões do IBGE.
+    """
     d = {}
     d["ind"] = pd.read_parquet(P / "industria.parquet")
-    for nome in ["ind_regiao_setor", "ind_macrofamilia", "ind_regiao_macrofamilia", "ind_municipio",
-                 "municipios", "log_limpeza", "est_logit_pedido", "est_correlacoes",
-                 "est_pedido_salario_escolaridade", "est_sensibilidade_pares", "est_sensibilidade_cenarios"]:
+    for nome in ["ind_municipio_setor", "ind_macrofamilia", "ind_municipio", "municipios", "log_limpeza",
+                 "est_logit_pedido", "est_correlacoes", "est_pedido_salario_escolaridade",
+                 "est_sensibilidade_pares", "est_sensibilidade_cenarios", "validacao_schema"]:
         d[nome] = pd.read_csv(P / f"{nome}.csv")
-    geo = json.loads((ROOT / "data/sc_municipios.geojson").read_text(encoding="utf-8"))
-    d["geo"] = geo
-    cent = {int(f["properties"]["id"]): _centroide(f["geometry"]) for f in geo["features"]}
-    mun = d["ind_municipio"].copy()
-    mun["lat"] = mun["cod_ibge"].map(lambda c: cent.get(c, (np.nan, np.nan))[0])
-    mun["lon"] = mun["cod_ibge"].map(lambda c: cent.get(c, (np.nan, np.nan))[1])
-    d["ind_municipio"] = mun
 
-    # Região imediata -> intermediária
-    reg = d["municipios"][["regiao_imediata", "regiao_intermediaria"]].drop_duplicates()
-    d["mapa_regioes"] = reg
-
-    # Robustez do alerta (36 cenários de sensibilidade) anexada ao diagnóstico região x setor
-    rs = d["ind_regiao_setor"].merge(
-        d["est_sensibilidade_pares"][["regiao_imediata", "setor", "estabilidade", "pct_cenarios_alerta"]],
-        on=["regiao_imediata", "setor"], how="left").merge(reg, on="regiao_imediata", how="left")
+    # Polos = município × setor, com a robustez do alerta (36 calibrações)
+    rs = d["ind_municipio_setor"].merge(
+        d["est_sensibilidade_pares"][["cod_ibge", "setor", "estabilidade", "pct_cenarios_alerta"]],
+        on=["cod_ibge", "setor"], how="left")
     rs["robusto"] = rs["diagnostico"].isin(ALERTAS) & (rs["estabilidade"] == "Alerta robusto")
     d["rs"] = rs
+    d["municipios_ind"] = (d["ind_municipio"].loc[d["ind_municipio"]["movimentacoes"] >= MIN_MOV, "municipio_nome"]
+                           .sort_values().tolist())
+
+    # ---- Bônus: fontes externas ----
+    d["externo"] = (EXT / "sc_municipios.geojson").exists() and "regiao_imediata" in d["municipios"].columns
+    if d["externo"]:
+        geo = json.loads((EXT / "sc_municipios.geojson").read_text(encoding="utf-8"))
+        d["geo"] = geo
+        cent = {int(f["properties"]["id"]): _centroide(f["geometry"]) for f in geo["features"]}
+        mun = d["ind_municipio"].copy()
+        mun["lat"] = mun["cod_ibge"].map(lambda c: cent.get(c, (np.nan, np.nan))[0])
+        mun["lon"] = mun["cod_ibge"].map(lambda c: cent.get(c, (np.nan, np.nan))[1])
+        d["ind_municipio"] = mun
+        d["mapa_regioes"] = d["municipios"][["regiao_imediata", "regiao_intermediaria"]].drop_duplicates()
+        for nome in ["ind_regiao_setor", "ind_regiao_macrofamilia", "est_sensibilidade_pares_regiao"]:
+            if (P / f"{nome}.csv").exists():
+                d[nome] = pd.read_csv(P / f"{nome}.csv")
     return d
 
 

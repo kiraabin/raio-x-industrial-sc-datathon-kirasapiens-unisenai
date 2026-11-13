@@ -1,4 +1,4 @@
-"""Regenera data/sc_municipios.geojson com a malha atual do IBGE (295 municípios).
+"""Regenera data/externos/sc_municipios.geojson com a malha atual do IBGE (295 municípios).
 
 A malha anterior tinha 293: faltavam Pescaria Brava (4212650) e Balneário Rincão (4220000),
 criados em 2013, que apareciam em branco no mapa. Mantém as propriedades id/name/description
@@ -33,5 +33,5 @@ for f in g['features']:
 ids = {int(f['properties']['id']) for f in feats}
 assert ids == set(nomes), (len(ids), set(nomes) ^ ids)
 out = {"type": "FeatureCollection", "features": sorted(feats, key=lambda f: f['properties']['id'])}
-(ROOT / 'data/sc_municipios.geojson').write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')))
-print(len(feats), 'municípios,', (ROOT / 'data/sc_municipios.geojson').stat().st_size // 1024, 'KB')
+(ROOT / 'data/externos/sc_municipios.geojson').write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')))
+print(len(feats), 'municípios,', (ROOT / 'data/externos/sc_municipios.geojson').stat().st_size // 1024, 'KB')

@@ -19,6 +19,8 @@ Desafio prático de análise de dados e inteligência artificial, Bacharelado em
 > Quais regiões e setores industriais de SC enfrentam **apagão de mão de obra** ou **expansão acelerada**,
 > e como **renda** e **escolaridade** explicam esses gargalos?
 
+> **Regra de dados do desafio.** O diagnóstico, os indicadores e todas as abas principais do painel usam **apenas as três bases fornecidas pela organização** (Novo CAGED MOV, base municipal de SC e dicionário de dados), mais a classificação de CBOs feita por IA a partir dessas mesmas bases. A unidade territorial é o **município** e o polo é **município × setor**. Fontes externas (regiões geográficas e malha municipal do IBGE) ficam isoladas em `data/externos/` e só aparecem no filtro **➕ Bônus**, desligado por padrão e sinalizado com selo amarelo. Sem esses arquivos, o pipeline e o painel funcionam normalmente.
+
 ---
 
 ## Equipe
@@ -40,28 +42,29 @@ Desafio prático de análise de dados e inteligência artificial, Bacharelado em
 | # | Achado | Evidência |
 |---|---|---|
 | 1 | **A indústria girou o quadro sem crescer** | 835.776 movimentações na indústria de transformação em 12 meses para um saldo de apenas **+1.098** vagas |
-| 2 | **O crescimento é operacional e se concentra no Oeste e em Itajaí** | A região intermediária de Chapecó soma +3.748 vagas, e as regiões imediatas de Itajaí (+2.558) e Chapecó (+2.351) lideram. Ocupações operacionais: +6.326. Técnicos: −2.729, gestão: −1.699, nível superior: −800 |
+| 2 | **O crescimento é operacional e concentrado em poucos municípios** | Navegantes (+2.381), Joinville (+1.480) e Chapecó (+1.307) lideram o saldo industrial. Ocupações operacionais: +6.326. Técnicos: −2.729, gestão: −1.699, nível superior: −800 |
 | 3 | **O apagão é de retenção, não de diploma** | Agroindústria, produção de base, têxtil e vestuário: cerca de 55 a 60% dos desligamentos são **a pedido** do trabalhador, salário de admissão de R$ 2,0 a 2,2 mil e menos de 2% dos admitidos com ensino superior |
-| 4 | **16 polos em alerta robusto** | Dos 26 pares região × setor em alerta no cenário padrão, 16 se mantêm em pelo menos 80% das 36 calibrações testadas. Os maiores: alimentos em Joaçaba, vestuário em Ibirama e Ituporanga, veículos em São Bento do Sul e Tubarão, couro e calçados em Caçador |
-| 5 | **Salário segura; diploma, não** | Quem ganha até ~R$ 2 mil pede demissão em 57% das saídas; acima de ~R$ 3,6 mil, em 41%. Entre escolaridades, a taxa fica entre 51% e 55%. Pagar 10% acima da mediana da ocupação reduz em ~6% a chance de pedido de demissão (regressão logística, 391 mil desligamentos) |
-| 6 | **Polos em expansão acelerada** | Alimentos em Chapecó, Concórdia, Xanxerê e Criciúma; têxtil em Brusque; máquinas e materiais elétricos em Joinville e Blumenau; veículos e equipamentos de transporte em Itajaí |
+| 4 | **44 polos em alerta robusto** | Dos 538 polos município × setor com 300+ movimentações, 70 ficam em alerta no cenário padrão e 44 se mantêm em pelo menos 80% das 36 calibrações testadas. Os maiores: alimentos em Itapiranga (78% a pedido), veículos em Campo Alegre e Sangão, vestuário em Timbó, Tijucas, Morro da Fumaça e Treze de Maio |
+| 5 | **Salário segura; diploma, não** | Quem ganha até ~R$ 2 mil pede demissão em 57% das saídas; acima de ~R$ 3,6 mil, em 41%. Entre escolaridades, a taxa fica entre 51% e 55%. Pagar 10% acima da mediana da ocupação reduz em ~6,5% a chance de pedido de demissão (regressão logística, 391 mil desligamentos) |
+| 6 | **Polos em expansão acelerada** | Veículos (+1.620) e outros equipamentos de transporte (+625) em Navegantes; alimentos em Chapecó (+1.273) e Guatambú (+551) |
 
 ---
 
 ## Painel analítico (Python)
 
 O entregável oficial é o **painel de inteligência de mão de obra da FIESC** em Streamlit (`dashboard/app.py`).
-Filtros globais por região intermediária e setor industrial; 7 abas:
+Filtros globais por município e setor industrial, mais o filtro **➕ Bônus** (fontes externas, desligado por padrão); 7 abas:
 
 | Aba | O que mostra |
 |---|---|
-| Visão geral | 5 KPIs (saldo e saldo por 10 mil hab., movimentações, % de saídas a pedido, salário de entrada, polos em alerta), insights automáticos, mapa com raios por município, prioridades da FIESC e saldo mensal |
-| Comparar territórios | Referência e até 2 comparações (municípios ou regiões imediatas), com notas de 0 a 20 em 5 eixos (dinamismo, retenção, renda, qualificação, desenvolvimento), faixas baixo/médio/bom/muito bom, radar, melhores e piores indicadores e leitura automática do território (`dashboard/territorio.py`) |
+| Visão geral | 5 KPIs (saldo e saldo por 10 mil hab., movimentações, % de saídas a pedido, salário de entrada, polos em alerta), insights automáticos, municípios que mais criam vagas e que mais perdem gente por pedido (no Bônus: mapa com raios), prioridades da FIESC e saldo mensal |
+| Comparar territórios | Referência e até 2 comparações (municípios; regiões imediatas só no Bônus), com notas de 0 a 20 em 5 eixos (dinamismo, retenção, renda, qualificação, desenvolvimento), faixas baixo/médio/bom/muito bom, radar, melhores e piores indicadores e leitura automática do território (`dashboard/territorio.py`) |
 | Polos e diagnóstico | Matriz Índice de Pressão × Índice de Expansão, contagem por diagnóstico, robustez dos alertas e tabela completa dos polos |
 | Renda e escolaridade | % de saídas a pedido por faixa salarial e por escolaridade, dispersão salário × saída a pedido por polo e efeitos da regressão logística |
-| Macrofamílias (IA) | As famílias de ocupações (LLM) que mais perdem gente, salário de entrada e mapa de calor família × região |
+| Macrofamílias (IA) | As famílias de ocupações (LLM) que mais perdem gente, salário de entrada e mapa de calor família × maiores municípios industriais |
 | Acionamento de parceiros | Um parceiro principal por polo (UniSENAI, Awtra ou empresas do polo; Way2 como secundário), escolhido por regra e com a justificativa tirada dos dados (`dashboard/acionamento.py`) |
-| Dados e método | Volumetria, validação de schema contra o dicionário, premissas e limites |
+| Dados e método | Volumetria, validação de schema contra o dicionário, fontes usadas, premissas e limites |
+| ➕ Bônus: fontes externas | Só com o filtro ligado: alertas por região imediata, família (IA) × região intermediária e novos insights possíveis com outras fontes (RAIS, vagas do SINE, matrículas técnicas, consumo de energia) |
 
 Visual: base branca com azul, letras grandes e cores vivas nos gráficos (`.streamlit/config.toml`, `dashboard/tema.py`).
 
@@ -71,7 +74,7 @@ Visual: base branca com azul, letras grandes e cores vivas nos gráficos (`.stre
 
 | Eixo | Descrição |
 |:---:|:---:|
-| Visão territorial | Mapear os polos industriais e analisar a rotatividade por região |
+| Visão territorial | Mapear os polos industriais e analisar a rotatividade por território (aqui: município × setor) |
 | Agrupamento por IA | Categorizar os CBOs (ocupações) em macro famílias |
 | Data storytelling | Dashboard executivo com recomendações práticas e acionáveis |
 
@@ -129,8 +132,8 @@ Coloque o arquivo baixado em `raw/Novo_Caged_MOV_Limpo.csv`.
 | `tests/` | Testes de consistência do backend (`pytest tests/`) |
 | `frontend/` | Frontend da aplicação em React (JavaScript) |
 | `dashboard/` | Painel analítico em Python (Streamlit), entregável oficial: `app.py` (abas do painel), `dados.py` (carga e agregações), `insights.py` (insights automáticos), `acionamento.py` (regras de acionamento de parceiros), `territorio.py` (notas e comparação de territórios), `tema.py` (identidade visual) |
-| `data/` | Apoio: regiões do IBGE, malha municipal, macrofamílias de CBO, `ia/` (prompt, amostra de subgrupos e resposta do LLM) e `processed/` (saídas do pipeline, incluindo `validacao_schema.csv`) |
-| `notebooks/` | Notebook documentado (`raio_x_industria_sc.ipynb`, com versão `.md`) cobrindo ingestão e validação, cruzamento com o IBGE, IA, indicadores, renda × escolaridade e exportação |
+| `data/` | Apoio: macrofamílias de CBO, `externos/` (regiões e malha do IBGE, só para o Bônus), `ia/` (prompt, amostra de subgrupos e resposta do LLM) e `processed/` (saídas do pipeline, incluindo `validacao_schema.csv`) |
+| `notebooks/` | Notebook documentado (`raio_x_industria_sc.ipynb`, com versão `.md`) cobrindo ingestão e validação, cruzamento com a base municipal, IA, indicadores, renda × escolaridade e exportação |
 
 ---
 
@@ -161,9 +164,10 @@ streamlit run dashboard/app.py      # abre em http://localhost:8501
 - Salário só entra nas comparações se estiver entre R$ 800 e R$ 60 mil, com jornada de pelo menos 30h e sem contratos intermitentes, de aprendiz ou parciais.
 
 **Junção territorial**
-- O código de município do CAGED tem 6 dígitos, e o do IBGE tem 7. A junção usa `cod_ibge // 10`.
-- As regiões são as **7 intermediárias e 24 imediatas** oficiais do IBGE.
-- A população é a estimativa do IBGE para 2026.
+- O código de município do CAGED tem 6 dígitos, e o da base municipal do desafio tem 7. A junção usa `cod_ibge // 10` (100% de correspondência).
+- O território do diagnóstico é o **município**; o polo é **município × setor** (divisão CNAE).
+- A população é a estimativa para 2026 que já vem na base municipal do desafio.
+- *Bônus (fora das regras):* as 7 regiões intermediárias e 24 imediatas do IBGE, em `data/externos/`.
 
 **Agrupamento de CBOs por IA**
 - Os 1.467 CBOs presentes na indústria pertencem a 177 subgrupos. Para cada subgrupo, um LLM (Claude) recebeu os títulos das ocupações mais frequentes e classificou o subgrupo em uma de **16 macrofamílias** fechadas.
@@ -217,7 +221,7 @@ Uso sugerido: mapa de calor com `quintil_sal` nas linhas, `faixa_esc` nas coluna
 
 | Coluna | Descrição |
 |---|---|
-| `nivel` | `desligamento` (microdado), `regiao_setor` (pares região imediata × setor) ou `municipio` |
+| `nivel` | `desligamento` (microdado), `municipio_setor` (polos município × setor) ou `municipio` |
 | `var_x`, `var_y` | Variáveis comparadas (ver abaixo) |
 | `rho` | Correlação de Spearman, de −1 a 1 |
 | `p_valor`, `significativo_5pct` | Teste de significância (`p < 0,05`) |
@@ -234,12 +238,12 @@ Variáveis do nível `desligamento`:
 | `sal_rel_cbo` | Quanto o trabalhador ganhava acima ou abaixo da mediana da CBO (em log) |
 | `idade` | Idade do desligado |
 
-Nos níveis agregados, as variáveis vêm de `ind_regiao_setor.csv` e `ind_municipio.csv`. No nível `municipio` entram também `idhm_2010`, `pib_per_capita_2023` e `escolarizacao_6_14`.
+Nos níveis agregados, as variáveis vêm de `ind_municipio_setor.csv` e `ind_municipio.csv`. No nível `municipio` entram também `idhm_2010`, `pib_per_capita_2023` e `escolarizacao_6_14`.
 
 No microdado o `n` é tão grande que quase tudo dá significativo: leia o tamanho do `rho`, não o p-valor.
 
 **`est_logit_pedido.csv`**: regressão logística da chance de um desligamento ser a pedido.
-Controla setor, região imediata, porte do estabelecimento, faixa etária e sexo, com erros-padrão agrupados por CBO.
+Controla setor, porte do estabelecimento, faixa etária e sexo, com erros-padrão agrupados por CBO.
 
 | Coluna | Descrição |
 |---|---|
@@ -275,15 +279,15 @@ O método altera só a pressão; a expansão fica igual em todos os cenários.
 |---|---|
 | `metodo`, `min_mov`, `limiar` | Parâmetros do cenário |
 | `padrao` | `True` no cenário usado pelo projeto (`atual`, 300, 0,5) |
-| `Apagão de mão de obra` … `Volume insuficiente` | Quantidade de pares região × setor em cada diagnóstico |
+| `Apagão de mão de obra` … `Volume insuficiente` | Quantidade de polos município × setor em cada diagnóstico |
 | `alertas` | Apagão + Expansão sob pressão |
 
-**`est_sensibilidade_pares.csv`**: uma linha por par região imediata × setor (503 pares).
+**`est_sensibilidade_pares.csv`**: uma linha por polo município × setor (3.105 polos; 538 com 300+ movimentações). Com as fontes externas presentes, `est_sensibilidade_pares_regiao.csv` traz a mesma tabela por região imediata (Bônus).
 
 | Coluna | Descrição |
 |---|---|
-| `regiao_imediata`, `setor` | Chave do par |
-| `movimentacoes`, `saldo`, `pct_pedido_demissao`, `premio_salarial`, `indice_reposicao` | Indicadores do par (iguais a `ind_regiao_setor.csv`) |
+| `cod_ibge`, `municipio_nome`, `setor` | Chave do polo |
+| `movimentacoes`, `saldo`, `pct_pedido_demissao`, `premio_salarial`, `indice_reposicao` | Indicadores do par (iguais a `ind_municipio_setor.csv`) |
 | `indice_pressao`, `diagnostico` | Resultado no cenário padrão |
 | `indice_pressao_sem_reposicao`, `diagnostico_sem_reposicao` | Resultado no método `sem_reposicao` (volume e limiar padrão) |
 | `cenarios_avaliados` | Em quantos cenários o par teve volume suficiente |
@@ -310,7 +314,7 @@ A base cobre só 12 meses, então isto é o perfil dentro do ano, não uma decom
 
 | Coluna | Descrição |
 |---|---|
-| `recorte_tipo` | `total`, `setor`, `regiao_intermediaria` ou `nivel_ocupacao` |
+| `recorte_tipo` | `total`, `setor`, `nivel_ocupacao` (e `regiao_intermediaria` no Bônus) |
 | `recorte` | Valor do recorte (ex.: `Alimentos`, `Chapecó`). No `total`: `Indústria de transformação` |
 | `competênciamov`, `mes` | Competência (`202512`) e rótulo (`dez/25`) |
 | `admissoes`, `desligamentos`, `saldo`, `movimentacoes` | Fluxo do mês |
@@ -343,7 +347,7 @@ Leitura:
 | Arquivo | Conteúdo |
 |---|---|
 | `manifest.json` | Data de geração, janela, totais da base e lista de arquivos com colunas e número de linhas |
-| `cubo.json` | Contagens por `regiao_intermediaria` × `regiao_imediata` × `setor` × `competencia`: `admissoes`, `desligamentos`, `saldo`, `a_pedido`, `adm_superior`. Para filtrar no React, some as contagens e só depois calcule as taxas (ex.: `Σ a_pedido ÷ Σ desligamentos`) |
+| `cubo.json` | Contagens por `regiao_intermediaria` × `regiao_imediata` (ou `municipio_nome`, sem as fontes externas) × `setor` × `competencia`: `admissoes`, `desligamentos`, `saldo`, `a_pedido`, `adm_superior`. Para filtrar no React, some as contagens e só depois calcule as taxas (ex.: `Σ a_pedido ÷ Σ desligamentos`) |
 | `<nome>.json` | Cada CSV de `data/processed/` como lista de registros (`NaN` vira `null`) |
 
 ---
@@ -351,12 +355,13 @@ Leitura:
 ## Limites da análise
 - O CAGED mede **fluxo** de admissões e desligamentos, não estoque de empregos nem vagas abertas. Por isso o "apagão" é inferido pelo comportamento de retenção e salário.
 - Só foi fornecida a base MOV; não houve desconto das exclusões (EXC).
-- O prêmio salarial tende a ser negativo, porque quem sai tem mais tempo de casa. O sinal está na comparação entre setores e regiões.
+- O prêmio salarial tende a ser negativo, porque quem sai tem mais tempo de casa. O sinal está na comparação entre setores e municípios.
 - O índice é relativo à própria indústria catarinense e não deve ser comparado com outros estados.
 
 ---
 
 ## Fontes
 - Novo CAGED: Ministério do Trabalho e Emprego (base do desafio)
-- IBGE: Cidades@ (base municipal do desafio) e Divisão Regional do Brasil em Regiões Geográficas Imediatas e Intermediárias (2017)
+- Bases do desafio: Novo CAGED MOV (SC), base municipal de SC e dicionário de dados
+- Somente no Bônus (fonte externa): IBGE, Divisão Regional do Brasil em Regiões Geográficas Imediatas e Intermediárias (2017) e malha municipal
 - Malha municipal: [tbrugz/geodata-br](https://github.com/tbrugz/geodata-br)

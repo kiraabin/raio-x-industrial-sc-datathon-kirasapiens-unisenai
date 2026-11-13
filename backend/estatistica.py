@@ -5,11 +5,11 @@ Roda só com data/processed/ (não precisa do CSV bruto do CAGED).
 Saídas (data/processed/est_*.csv):
   1. Renda, escolaridade e desligamento a pedido
      est_pedido_salario_escolaridade.csv  % a pedido por quintil de salário × faixa de escolaridade
-     est_correlacoes.csv                  correlações de Spearman (microdado, região × setor, município)
+     est_correlacoes.csv                  correlações de Spearman (microdado, município × setor, município)
      est_logit_pedido.csv                 razões de chance (regressão logística) de o desligamento ser a pedido
   2. Sensibilidade do Índice de Pressão
      est_sensibilidade_cenarios.csv       contagem de diagnósticos por método × volume mínimo × limiar
-     est_sensibilidade_pares.csv          estabilidade do alerta de cada par região × setor
+     est_sensibilidade_pares.csv          estabilidade do alerta de cada par município × setor
   3. Sazonalidade (perfil intra-anual: a base cobre 12 meses, então não separa sazonalidade de tendência)
      est_sazonalidade_mensal.csv          fluxo mensal total, por setor, região intermediária e nível
      est_sazonalidade_resumo.csv          pico, vale, amplitude e risco de recorte por setor
@@ -97,7 +97,7 @@ def correlacoes(d: pd.DataFrame, rs: pd.DataFrame, mun_ind: pd.DataFrame,
                  "idade_media_adm"]
     alvos = ["pct_pedido_demissao", "indice_pressao", "premio_salarial", "saldo_10k_hab"]
     rs_ok = rs[rs["movimentacoes"] >= MIN_MOV]
-    linhas += _spearman(rs_ok, list(product(agregadas, alvos)), "regiao_setor")
+    linhas += _spearman(rs_ok, list(product(agregadas, alvos)), "municipio_setor")
     m = mun_ind.merge(mun[["cod_ibge", "idhm_2010", "pib_per_capita_2023", "escolarizacao_6_14"]],
                       on="cod_ibge")
     m = m[m["movimentacoes"] >= MIN_MOV]
@@ -109,19 +109,19 @@ def correlacoes(d: pd.DataFrame, rs: pd.DataFrame, mun_ind: pd.DataFrame,
 
 
 def logit_pedido(d: pd.DataFrame) -> pd.DataFrame:
-    """Chance de o desligamento ser a pedido, controlando setor, região, porte, idade e sexo.
+    """Chance de o desligamento ser a pedido, controlando setor, porte, idade e sexo.
 
     O log do salário é decomposto em duas partes:
       log_sal_cbo  quanto a ocupação paga (mediana da CBO)
       sal_rel_cbo  quanto o trabalhador ganhava acima ou abaixo dos colegas da mesma CBO
-    Erros-padrão agrupados por CBO. Os efeitos fixos de setor, região e porte não são exportados.
+    Erros-padrão agrupados por CBO. Os efeitos fixos de setor e porte não são exportados.
     """
     d = d.dropna(subset=["faixa_idade"])
     formula = ("ped ~ log_sal_cbo + sal_rel_cbo + C(faixa_esc, Treatment('Até fundamental'))"
                " + C(faixa_idade, Treatment('30-39')) + mulher"
-               " + C(setor) + C(regiao_imediata) + C(porte)")
+               " + C(setor) + C(porte)")
     d = d.assign(faixa_esc=d["faixa_esc"].astype(str), faixa_idade=d["faixa_idade"].astype(str),
-                 setor=d["setor"].astype(str), regiao_imediata=d["regiao_imediata"].astype(str))
+                 setor=d["setor"].astype(str))
     m = smf.logit(formula, data=d).fit(disp=0, cov_type="cluster",
                                        cov_kwds={"groups": d["cbo"].to_numpy()})
     ic = m.conf_int()
@@ -146,10 +146,10 @@ def logit_pedido(d: pd.DataFrame) -> pd.DataFrame:
 # ---------------------------------------------------------------- 2. Sensibilidade
 
 def sensibilidade(rs: pd.DataFrame, min_movs=(200, 300, 500, 1000),
-                  limiares=(0.3, 0.5, 0.7)) -> tuple[pd.DataFrame, pd.DataFrame]:
-    """Reclassifica os pares região × setor em todos os cenários método × volume × limiar."""
+                  limiares=(0.3, 0.5, 0.7), chave=("regiao_imediata", "setor")) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Reclassifica os pares território × setor em todos os cenários método × volume × limiar."""
     base = rs.drop(columns=["indice_pressao", "indice_expansao", "diagnostico"], errors="ignore")
-    chave = ["regiao_imediata", "setor"]
+    chave = list(chave)
     contagens, por_par = [], []
     for metodo, mm, lim in product(METODOS_PRESSAO, min_movs, limiares):
         t = classificar(base, min_mov=mm, metodo=metodo, limiar=lim)
@@ -205,8 +205,8 @@ def _fluxo_mensal(ind: pd.DataFrame, recorte: str | None) -> pd.DataFrame:
 
 
 def sazonalidade_mensal(ind: pd.DataFrame) -> pd.DataFrame:
-    g = pd.concat([_fluxo_mensal(ind, r) for r in
-                   (None, "setor", "regiao_intermediaria", "nivel_ocupacao")], ignore_index=True)
+    recortes = [None, "setor", "nivel_ocupacao"] + (["regiao_intermediaria"] if "regiao_intermediaria" in ind else [])
+    g = pd.concat([_fluxo_mensal(ind, r) for r in recortes], ignore_index=True)
     g = g.sort_values(["recorte_tipo", "recorte", "competênciamov"])
     g["mes"] = (g["competênciamov"] % 100).map(MES) + "/" + (g["competênciamov"] // 100 % 100).astype(str)
     g["saldo"] = g["admissoes"] - g["desligamentos"]
@@ -259,7 +259,7 @@ def sazonalidade_resumo(mensal: pd.DataFrame) -> pd.DataFrame:
 
 def main():
     ind = pd.read_parquet(OUT / "industria.parquet")
-    rs = pd.read_csv(OUT / "ind_regiao_setor.csv")
+    rs = pd.read_csv(OUT / "ind_municipio_setor.csv")
     mun_ind = pd.read_csv(OUT / "ind_municipio.csv")
     mun = pd.read_csv(OUT / "municipios.csv")
 
@@ -269,7 +269,12 @@ def main():
         "est_correlacoes": correlacoes(d, rs, mun_ind, mun),
         "est_logit_pedido": logit_pedido(d),
     }
-    saidas["est_sensibilidade_cenarios"], saidas["est_sensibilidade_pares"] = sensibilidade(rs)
+    cen, pares = sensibilidade(rs, chave=("cod_ibge", "setor"))
+    pares = pares.merge(rs[["cod_ibge", "municipio_nome"]].drop_duplicates(), on="cod_ibge")
+    saidas["est_sensibilidade_cenarios"], saidas["est_sensibilidade_pares"] = cen, pares
+    # Seção externa: robustez também para região imediata × setor (regiões do IBGE)
+    if (OUT / "ind_regiao_setor.csv").exists():
+        saidas["est_sensibilidade_pares_regiao"] = sensibilidade(pd.read_csv(OUT / "ind_regiao_setor.csv"))[1]
     mensal = sazonalidade_mensal(ind)
     saidas["est_sazonalidade_mensal"] = mensal
     saidas["est_sazonalidade_resumo"] = sazonalidade_resumo(mensal)

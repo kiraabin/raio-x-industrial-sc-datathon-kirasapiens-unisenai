@@ -2,7 +2,7 @@ name: Deploy dashboard (GitHub Pages)
 on:
   push:
     branches: [main]
-    paths: ["frontend/**", "data/processed/api/**", "data/sc_municipios.geojson", ".github/workflows/pages.yml"]
+    paths: ["frontend/**", "data/processed/api/**", "data/externos/sc_municipios.geojson", ".github/workflows/pages.yml"]
   workflow_dispatch:
 permissions:
   contents: read

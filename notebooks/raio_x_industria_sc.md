@@ -1,18 +1,21 @@
 # Raio-X do Mercado de Trabalho Industrial de Santa Catarina
 **Equipe Kirasapiens Neurotech · Datathon UniSENAI 2026 · consultoria de dados para a FIESC**
 
-> **Pergunta central:** quais regiões e setores industriais de SC enfrentam apagão de mão de obra ou expansão acelerada, e como renda e escolaridade explicam esses gargalos?
+> **Pergunta central:** quais regiões (municípios) e setores industriais de SC enfrentam apagão de mão de obra ou expansão acelerada, e como renda e escolaridade explicam esses gargalos?
+
+> **Regra de dados:** o diagnóstico usa **apenas as bases fornecidas pelo desafio** (Novo CAGED MOV, base municipal de SC e dicionário de dados), mais a classificação de CBOs feita por IA a partir dessas mesmas bases. Fontes externas (regiões geográficas e malha do IBGE) ficam isoladas em `data/externos/` e aparecem só no **Apêndice bônus** e no filtro *Bônus* do painel.
 
 Este notebook documenta **todo o pipeline**, da carga inicial e exclusão de registros inválidos até a comunicação com a IA e a exportação final que alimenta o painel (`dashboard/app.py`). O código reutilizável está em `backend/`.
 
 | Etapa do guia | Onde está neste notebook | Código |
 |---|---|---|
 | Ingestão e validação (schema, inconsistências, MOV × EXC) | Seção 1 | `backend/validacao.py`, `backend/pipeline.py` |
-| Cruzamento relacional (CAGED × IBGE) e saldo por 10 mil hab. | Seção 2 | `backend/pipeline.py` |
+| Cruzamento relacional (CAGED × base municipal) e saldo por 10 mil hab. | Seção 2 | `backend/pipeline.py` |
 | Enriquecimento com IA (prompt, amostra, API, importação) | Seção 3 | `backend/cbo_llm.py`, `data/ia/` |
 | Análise: indicadores, diagnóstico e robustez | Seção 4 | `backend/indicadores.py`, `backend/estatistica.py` |
 | Renda e escolaridade | Seção 5 | `backend/estatistica.py` |
 | Exportação final | Seção 6 | `backend/exportar.py` |
+| Bônus: fontes externas (fora das regras) | Apêndice | `data/externos/` |
 
 
 ```python
@@ -327,7 +330,7 @@ val
 
 
 
-**Leitura:** a base é toda de SC (UF 42), o saldo é sempre −1/+1 e 100% dos municípios têm correspondência no IBGE. As inconsistências são tratadas assim:
+**Leitura:** a base é toda de SC (UF 42), o saldo é sempre −1/+1 e 100% dos municípios têm correspondência na base municipal do desafio. As inconsistências são tratadas assim:
 - **Categoria 999** (não identificada): removida.
 - **Salário fora de R\$ 800 a R\$ 60 mil**: mantido nas contagens, mas fora das comparações salariais.
 - **CBOs mais novos que o dicionário** (ex.: 142360): mantidos e classificados pelo subgrupo de 3 dígitos.
@@ -393,14 +396,14 @@ pd.read_csv(P + 'log_limpeza.csv')
 
 
     
-    Diagnóstico região x setor:
+    Diagnóstico município × setor (bases do desafio):
     diagnostico
-    Volume insuficiente      218
-    Estável                  197
-    Retração                  32
-    Expansão acelerada        30
-    Apagão de mão de obra     20
-    Expansão sob pressão       6
+    Volume insuficiente      2567
+    Estável                   365
+    Apagão de mão de obra      59
+    Expansão acelerada         56
+    Retração                   47
+    Expansão sob pressão       11
 
 
 
@@ -465,19 +468,19 @@ pd.read_csv(P + 'log_limpeza.csv')
 
 
 
-## 2. Cruzamento relacional (CAGED × IBGE)
-O CAGED identifica o município com **6 dígitos** e o IBGE com **7** (o último é dígito verificador). A chave de junção é `cod_ibge // 10`. A base municipal também recebe as **regiões geográficas imediatas e intermediárias** oficiais do IBGE (2017).
+## 2. Cruzamento relacional (CAGED × base municipal)
+O CAGED identifica o município com **6 dígitos** e a base municipal do desafio com **7** (o último é dígito verificador). A chave de junção é `cod_ibge // 10`. A unidade territorial do diagnóstico é o **município**, e o polo é **município × setor**: não usamos agrupamentos regionais externos no núcleo da análise.
 
 
 ```python
 ind = pd.read_parquet(P + 'industria.parquet')
 print(f"{len(ind):,} movimentações na indústria de transformação (CNAE C)")
-print('Registros sem município IBGE após a junção:', ind['cod_ibge'].isna().sum())
-mun[['municipio_nome', 'cod_ibge', 'cod_caged', 'regiao_imediata', 'regiao_intermediaria', 'pop_estimada_2026']].head()
+print('Registros sem município na base fornecida após a junção:', ind['cod_ibge'].isna().sum())
+mun[['municipio_nome', 'cod_ibge', 'cod_caged', 'pop_estimada_2026']].head()
 ```
 
     835,776 movimentações na indústria de transformação (CNAE C)
-    Registros sem município IBGE após a junção: 0
+    Registros sem município na base fornecida após a junção: 0
 
 
 
@@ -504,8 +507,6 @@ mun[['municipio_nome', 'cod_ibge', 'cod_caged', 'regiao_imediata', 'regiao_inter
       <th>municipio_nome</th>
       <th>cod_ibge</th>
       <th>cod_caged</th>
-      <th>regiao_imediata</th>
-      <th>regiao_intermediaria</th>
       <th>pop_estimada_2026</th>
     </tr>
   </thead>
@@ -515,8 +516,6 @@ mun[['municipio_nome', 'cod_ibge', 'cod_caged', 'regiao_imediata', 'regiao_inter
       <td>Abdon Batista</td>
       <td>4200051</td>
       <td>420005</td>
-      <td>Joaçaba - Herval d'Oeste</td>
-      <td>Chapecó</td>
       <td>2628</td>
     </tr>
     <tr>
@@ -524,8 +523,6 @@ mun[['municipio_nome', 'cod_ibge', 'cod_caged', 'regiao_imediata', 'regiao_inter
       <td>Abelardo Luz</td>
       <td>4200101</td>
       <td>420010</td>
-      <td>Xanxerê</td>
-      <td>Chapecó</td>
       <td>17797</td>
     </tr>
     <tr>
@@ -533,8 +530,6 @@ mun[['municipio_nome', 'cod_ibge', 'cod_caged', 'regiao_imediata', 'regiao_inter
       <td>Agrolândia</td>
       <td>4200200</td>
       <td>420020</td>
-      <td>Rio do Sul</td>
-      <td>Blumenau</td>
       <td>11798</td>
     </tr>
     <tr>
@@ -542,8 +537,6 @@ mun[['municipio_nome', 'cod_ibge', 'cod_caged', 'regiao_imediata', 'regiao_inter
       <td>Agronômica</td>
       <td>4200309</td>
       <td>420030</td>
-      <td>Rio do Sul</td>
-      <td>Blumenau</td>
       <td>6453</td>
     </tr>
     <tr>
@@ -551,8 +544,6 @@ mun[['municipio_nome', 'cod_ibge', 'cod_caged', 'regiao_imediata', 'regiao_inter
       <td>Água Doce</td>
       <td>4200408</td>
       <td>420040</td>
-      <td>Joaçaba - Herval d'Oeste</td>
-      <td>Chapecó</td>
       <td>6547</td>
     </tr>
   </tbody>
@@ -567,7 +558,7 @@ mun[['municipio_nome', 'cod_ibge', 'cod_caged', 'regiao_imediata', 'regiao_inter
 ```python
 im = pd.read_csv(P + 'ind_municipio.csv')
 im = im[im['movimentacoes'] >= 300]
-cols = ['municipio_nome', 'regiao_intermediaria', 'saldo', 'populacao', 'saldo_10k_hab']
+cols = ['municipio_nome', 'saldo', 'populacao', 'saldo_10k_hab']
 print('Maior crescimento relativo'); display(im.nlargest(5, 'saldo_10k_hab')[cols].round(1))
 print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[cols].round(1))
 ```
@@ -595,7 +586,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr style="text-align: right;">
       <th></th>
       <th>municipio_nome</th>
-      <th>regiao_intermediaria</th>
       <th>saldo</th>
       <th>populacao</th>
       <th>saldo_10k_hab</th>
@@ -605,7 +595,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr>
       <th>103</th>
       <td>Guatambú</td>
-      <td>Chapecó</td>
       <td>563.0</td>
       <td>9947.0</td>
       <td>566.0</td>
@@ -613,7 +602,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr>
       <th>169</th>
       <td>Nova Erechim</td>
-      <td>Chapecó</td>
       <td>169.0</td>
       <td>5553.0</td>
       <td>304.3</td>
@@ -621,7 +609,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr>
       <th>168</th>
       <td>Navegantes</td>
-      <td>Blumenau</td>
       <td>2381.0</td>
       <td>98421.0</td>
       <td>241.9</td>
@@ -629,7 +616,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr>
       <th>273</th>
       <td>Treze Tílias</td>
-      <td>Chapecó</td>
       <td>207.0</td>
       <td>9749.0</td>
       <td>212.3</td>
@@ -637,7 +623,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr>
       <th>185</th>
       <td>Paraíso</td>
-      <td>Chapecó</td>
       <td>81.0</td>
       <td>4412.0</td>
       <td>183.6</td>
@@ -670,7 +655,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr style="text-align: right;">
       <th></th>
       <th>municipio_nome</th>
-      <th>regiao_intermediaria</th>
       <th>saldo</th>
       <th>populacao</th>
       <th>saldo_10k_hab</th>
@@ -680,7 +664,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr>
       <th>53</th>
       <td>Campo Alegre</td>
-      <td>Joinville</td>
       <td>-423.0</td>
       <td>13007.0</td>
       <td>-325.2</td>
@@ -688,7 +671,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr>
       <th>83</th>
       <td>Ermo</td>
-      <td>Criciúma</td>
       <td>-70.0</td>
       <td>2342.0</td>
       <td>-298.9</td>
@@ -696,7 +678,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr>
       <th>260</th>
       <td>Siderópolis</td>
-      <td>Criciúma</td>
       <td>-365.0</td>
       <td>14223.0</td>
       <td>-256.6</td>
@@ -704,7 +685,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr>
       <th>205</th>
       <td>Pouso Redondo</td>
-      <td>Blumenau</td>
       <td>-374.0</td>
       <td>18270.0</td>
       <td>-204.7</td>
@@ -712,7 +692,6 @@ print('Maior retração relativa'); display(im.nsmallest(5, 'saldo_10k_hab')[col
     <tr>
       <th>256</th>
       <td>Saudades</td>
-      <td>Chapecó</td>
       <td>-147.0</td>
       <td>10922.0</td>
       <td>-134.6</td>
@@ -737,7 +716,7 @@ prompt = (cbo_llm.IA / 'prompt_cbo.txt').read_text(encoding='utf-8')
 print(prompt[:1400], '\n[...]')
 ```
 
-    177 subgrupos exportados para /home/claude/chk/data/ia/prompt_cbo.txt
+    177 subgrupos exportados para /home/claude/raio-x-industrial-sc/data/ia/prompt_cbo.txt
     Você é especialista na Classificação Brasileira de Ocupações (CBO 2002)
     e no parque industrial de Santa Catarina.
     
@@ -1089,8 +1068,8 @@ pd.crosstab(x['macrofamilia'], x['grande_grupo']).loc[:, lambda t: t.sum() > 100
 
 ```python
 saldo = lambda s: 2 * s.sum() - len(s)
-r = ind.groupby('regiao_intermediaria', observed=True)['admissao'].agg(movimentacoes='size', saldo=saldo)
-r.sort_values('saldo', ascending=False)
+s = ind.groupby('setor', observed=True)['admissao'].agg(movimentacoes='size', saldo=saldo)
+s.sort_values('saldo', ascending=False)
 ```
 
 
@@ -1118,46 +1097,131 @@ r.sort_values('saldo', ascending=False)
       <th>saldo</th>
     </tr>
     <tr>
-      <th>regiao_intermediaria</th>
+      <th>setor</th>
       <th></th>
       <th></th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>Chapecó</th>
-      <td>149984</td>
-      <td>3748</td>
+      <th>Alimentos</th>
+      <td>176832</td>
+      <td>4748</td>
     </tr>
     <tr>
-      <th>Lages</th>
-      <td>23966</td>
-      <td>224</td>
+      <th>Máquinas e materiais elétricos</th>
+      <td>33000</td>
+      <td>2018</td>
     </tr>
     <tr>
-      <th>Caçador</th>
-      <td>36124</td>
-      <td>-80</td>
+      <th>Manutenção e instalação de máquinas</th>
+      <td>27356</td>
+      <td>1622</td>
     </tr>
     <tr>
-      <th>Joinville</th>
-      <td>189202</td>
-      <td>-504</td>
+      <th>Outros equip. de transporte</th>
+      <td>9395</td>
+      <td>1029</td>
     </tr>
     <tr>
-      <th>Blumenau</th>
-      <td>278218</td>
-      <td>-576</td>
+      <th>Veículos automotores</th>
+      <td>26353</td>
+      <td>835</td>
     </tr>
     <tr>
-      <th>Florianópolis</th>
-      <td>40729</td>
-      <td>-777</td>
+      <th>Celulose e papel</th>
+      <td>21434</td>
+      <td>534</td>
     </tr>
     <tr>
-      <th>Criciúma</th>
-      <td>117553</td>
-      <td>-937</td>
+      <th>Metalurgia</th>
+      <td>16952</td>
+      <td>384</td>
+    </tr>
+    <tr>
+      <th>Químicos</th>
+      <td>13958</td>
+      <td>286</td>
+    </tr>
+    <tr>
+      <th>Borracha e plástico</th>
+      <td>65542</td>
+      <td>270</td>
+    </tr>
+    <tr>
+      <th>Farmoquímicos</th>
+      <td>2251</td>
+      <td>35</td>
+    </tr>
+    <tr>
+      <th>Derivados de petróleo</th>
+      <td>179</td>
+      <td>23</td>
+    </tr>
+    <tr>
+      <th>Bebidas</th>
+      <td>5869</td>
+      <td>-7</td>
+    </tr>
+    <tr>
+      <th>Máquinas e equipamentos</th>
+      <td>45821</td>
+      <td>-89</td>
+    </tr>
+    <tr>
+      <th>Produtos diversos</th>
+      <td>13298</td>
+      <td>-116</td>
+    </tr>
+    <tr>
+      <th>Impressão</th>
+      <td>6039</td>
+      <td>-179</td>
+    </tr>
+    <tr>
+      <th>Fumo</th>
+      <td>2251</td>
+      <td>-189</td>
+    </tr>
+    <tr>
+      <th>Produtos de metal</th>
+      <td>52403</td>
+      <td>-295</td>
+    </tr>
+    <tr>
+      <th>Eletrônicos e informática</th>
+      <td>9337</td>
+      <td>-371</td>
+    </tr>
+    <tr>
+      <th>Couro e calçados</th>
+      <td>8796</td>
+      <td>-550</td>
+    </tr>
+    <tr>
+      <th>Têxtil</th>
+      <td>66812</td>
+      <td>-784</td>
+    </tr>
+    <tr>
+      <th>Minerais não metálicos (cerâmica, vidro)</th>
+      <td>33490</td>
+      <td>-840</td>
+    </tr>
+    <tr>
+      <th>Móveis</th>
+      <td>32426</td>
+      <td>-1316</td>
+    </tr>
+    <tr>
+      <th>Madeira</th>
+      <td>46432</td>
+      <td>-1388</td>
+    </tr>
+    <tr>
+      <th>Vestuário e acessórios</th>
+      <td>119550</td>
+      <td>-4562</td>
     </tr>
   </tbody>
 </table>
@@ -1167,20 +1231,22 @@ r.sort_values('saldo', ascending=False)
 
 
 ```python
-rs = pd.read_csv(P + 'ind_regiao_setor.csv')
-rs = rs[rs['movimentacoes'] >= 300]
-print(rs['diagnostico'].value_counts())
-cols = ['regiao_imediata', 'setor', 'movimentacoes', 'saldo', 'saldo_10k_hab', 'pct_pedido_demissao',
+ms = pd.read_csv(P + 'ind_municipio_setor.csv')
+ms = ms[ms['movimentacoes'] >= 300]
+print(len(ms), 'polos município × setor com 300+ movimentações')
+print(ms['diagnostico'].value_counts())
+cols = ['municipio_nome', 'setor', 'movimentacoes', 'saldo', 'saldo_10k_hab', 'pct_pedido_demissao',
         'indice_reposicao', 'salario_mediano_adm', 'indice_pressao', 'indice_expansao', 'diagnostico']
-rs[rs['diagnostico'] == 'Expansão acelerada'].nlargest(8, 'saldo')[cols].round(2)
+ms[ms['diagnostico'] == 'Expansão acelerada'].nlargest(8, 'saldo')[cols].round(2)
 ```
 
+    538 polos município × setor com 300+ movimentações
     diagnostico
-    Estável                  197
-    Retração                  32
-    Expansão acelerada        30
-    Apagão de mão de obra     20
-    Expansão sob pressão       6
+    Estável                  365
+    Apagão de mão de obra     59
+    Expansão acelerada        56
+    Retração                  47
+    Expansão sob pressão      11
     Name: count, dtype: int64
 
 
@@ -1205,7 +1271,7 @@ rs[rs['diagnostico'] == 'Expansão acelerada'].nlargest(8, 'saldo')[cols].round(
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>regiao_imediata</th>
+      <th>municipio_nome</th>
       <th>setor</th>
       <th>movimentacoes</th>
       <th>saldo</th>
@@ -1220,115 +1286,115 @@ rs[rs['diagnostico'] == 'Expansão acelerada'].nlargest(8, 'saldo')[cols].round(
   </thead>
   <tbody>
     <tr>
-      <th>88</th>
+      <th>1798</th>
+      <td>Navegantes</td>
+      <td>Veículos automotores</td>
+      <td>5054.0</td>
+      <td>1620.0</td>
+      <td>164.60</td>
+      <td>0.58</td>
+      <td>0.51</td>
+      <td>2079.00</td>
+      <td>-0.15</td>
+      <td>3.79</td>
+      <td>Expansão acelerada</td>
+    </tr>
+    <tr>
+      <th>663</th>
       <td>Chapecó</td>
       <td>Alimentos</td>
-      <td>32551.0</td>
-      <td>2407.0</td>
-      <td>47.73</td>
+      <td>19473.0</td>
+      <td>1273.0</td>
+      <td>44.02</td>
+      <td>0.53</td>
+      <td>0.88</td>
+      <td>2175.80</td>
+      <td>-0.16</td>
+      <td>0.97</td>
+      <td>Expansão acelerada</td>
+    </tr>
+    <tr>
+      <th>1793</th>
+      <td>Navegantes</td>
+      <td>Outros equip. de transporte</td>
+      <td>1687.0</td>
+      <td>625.0</td>
+      <td>63.50</td>
+      <td>0.47</td>
+      <td>0.46</td>
+      <td>2693.46</td>
+      <td>-0.43</td>
+      <td>1.42</td>
+      <td>Expansão acelerada</td>
+    </tr>
+    <tr>
+      <th>1108</th>
+      <td>Guatambú</td>
+      <td>Alimentos</td>
+      <td>5277.0</td>
+      <td>551.0</td>
+      <td>553.94</td>
+      <td>0.56</td>
+      <td>0.81</td>
+      <td>2156.23</td>
+      <td>-0.12</td>
+      <td>12.90</td>
+      <td>Expansão acelerada</td>
+    </tr>
+    <tr>
+      <th>2983</th>
+      <td>Urussanga</td>
+      <td>Borracha e plástico</td>
+      <td>1744.0</td>
+      <td>296.0</td>
+      <td>137.43</td>
+      <td>0.57</td>
+      <td>0.71</td>
+      <td>2494.57</td>
+      <td>0.00</td>
+      <td>3.15</td>
+      <td>Expansão acelerada</td>
+    </tr>
+    <tr>
+      <th>1157</th>
+      <td>Içara</td>
+      <td>Alimentos</td>
+      <td>2187.0</td>
+      <td>245.0</td>
+      <td>37.86</td>
+      <td>0.54</td>
+      <td>0.80</td>
+      <td>2181.00</td>
+      <td>-0.13</td>
+      <td>0.82</td>
+      <td>Expansão acelerada</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Abelardo Luz</td>
+      <td>Alimentos</td>
+      <td>2232.0</td>
+      <td>244.0</td>
+      <td>137.10</td>
+      <td>0.56</td>
+      <td>0.80</td>
+      <td>2044.14</td>
+      <td>-0.06</td>
+      <td>3.15</td>
+      <td>Expansão acelerada</td>
+    </tr>
+    <tr>
+      <th>3075</th>
+      <td>Xaxim</td>
+      <td>Alimentos</td>
+      <td>3026.0</td>
+      <td>224.0</td>
+      <td>63.89</td>
       <td>0.55</td>
       <td>0.86</td>
-      <td>2175.80</td>
-      <td>-0.01</td>
-      <td>5.93</td>
-      <td>Expansão acelerada</td>
-    </tr>
-    <tr>
-      <th>232</th>
-      <td>Itajaí</td>
-      <td>Veículos automotores</td>
-      <td>5394.0</td>
-      <td>1626.0</td>
-      <td>15.87</td>
-      <td>0.57</td>
-      <td>0.54</td>
-      <td>2079.00</td>
-      <td>0.22</td>
-      <td>1.97</td>
-      <td>Expansão acelerada</td>
-    </tr>
-    <tr>
-      <th>226</th>
-      <td>Itajaí</td>
-      <td>Outros equip. de transporte</td>
-      <td>5790.0</td>
-      <td>964.0</td>
-      <td>9.41</td>
-      <td>0.43</td>
-      <td>0.71</td>
-      <td>2881.28</td>
-      <td>-0.28</td>
-      <td>1.16</td>
-      <td>Expansão acelerada</td>
-    </tr>
-    <tr>
-      <th>286</th>
-      <td>Joinville</td>
-      <td>Máquinas e materiais elétricos</td>
-      <td>16142.0</td>
-      <td>898.0</td>
-      <td>7.63</td>
-      <td>0.56</td>
-      <td>0.89</td>
-      <td>2219.80</td>
-      <td>-0.10</td>
-      <td>0.94</td>
-      <td>Expansão acelerada</td>
-    </tr>
-    <tr>
-      <th>130</th>
-      <td>Criciúma</td>
-      <td>Alimentos</td>
-      <td>10431.0</td>
-      <td>617.0</td>
-      <td>12.80</td>
-      <td>0.54</td>
-      <td>0.89</td>
-      <td>2300.00</td>
-      <td>0.22</td>
-      <td>1.58</td>
-      <td>Expansão acelerada</td>
-    </tr>
-    <tr>
-      <th>37</th>
-      <td>Blumenau</td>
-      <td>Máquinas e materiais elétricos</td>
-      <td>5138.0</td>
-      <td>514.0</td>
-      <td>7.19</td>
-      <td>0.46</td>
-      <td>0.82</td>
-      <td>2327.60</td>
-      <td>-0.33</td>
-      <td>0.88</td>
-      <td>Expansão acelerada</td>
-    </tr>
-    <tr>
-      <th>66</th>
-      <td>Brusque</td>
-      <td>Têxtil</td>
-      <td>21570.0</td>
-      <td>398.0</td>
-      <td>15.36</td>
-      <td>0.42</td>
-      <td>0.96</td>
-      <td>2622.79</td>
-      <td>-0.50</td>
-      <td>1.90</td>
-      <td>Expansão acelerada</td>
-    </tr>
-    <tr>
-      <th>481</th>
-      <td>Xanxerê</td>
-      <td>Alimentos</td>
-      <td>6730.0</td>
-      <td>318.0</td>
-      <td>23.55</td>
-      <td>0.54</td>
-      <td>0.91</td>
-      <td>1977.69</td>
-      <td>0.20</td>
-      <td>2.92</td>
+      <td>2146.01</td>
+      <td>-0.19</td>
+      <td>1.43</td>
       <td>Expansão acelerada</td>
     </tr>
   </tbody>
@@ -1346,19 +1412,20 @@ sp = pd.read_csv(P + 'est_sensibilidade_pares.csv')
 alertas = sp[sp['diagnostico'].isin(['Apagão de mão de obra', 'Expansão sob pressão'])]
 print(alertas['estabilidade'].value_counts())
 alertas[alertas['estabilidade'] == 'Alerta robusto'].nlargest(8, 'movimentacoes')[
-    ['regiao_imediata', 'setor', 'diagnostico', 'movimentacoes', 'pct_pedido_demissao', 'pct_cenarios_alerta']].round(2)
+    ['municipio_nome', 'setor', 'diagnostico', 'movimentacoes', 'pct_pedido_demissao', 'pct_cenarios_alerta']].round(2)
 ```
 
     est_pedido_salario_escolaridade.csv            30 linhas
     est_correlacoes.csv                            50 linhas
     est_logit_pedido.csv                           10 linhas
     est_sensibilidade_cenarios.csv                 48 linhas
-    est_sensibilidade_pares.csv                   503 linhas
+    est_sensibilidade_pares.csv                  3105 linhas
+    est_sensibilidade_pares_regiao.csv            503 linhas
     est_sazonalidade_mensal.csv                   432 linhas
     est_sazonalidade_resumo.csv                    36 linhas
     estabilidade
-    Alerta robusto    16
-    Alerta frágil     10
+    Alerta robusto    44
+    Alerta frágil     26
     Name: count, dtype: int64
 
 
@@ -1383,7 +1450,7 @@ alertas[alertas['estabilidade'] == 'Alerta robusto'].nlargest(8, 'movimentacoes'
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>regiao_imediata</th>
+      <th>municipio_nome</th>
       <th>setor</th>
       <th>diagnostico</th>
       <th>movimentacoes</th>
@@ -1393,76 +1460,76 @@ alertas[alertas['estabilidade'] == 'Alerta robusto'].nlargest(8, 'movimentacoes'
   </thead>
   <tbody>
     <tr>
-      <th>18</th>
-      <td>Joaçaba - Herval d'Oeste</td>
+      <th>14</th>
+      <td>Itapiranga</td>
       <td>Alimentos</td>
       <td>Expansão sob pressão</td>
-      <td>12233.0</td>
-      <td>0.68</td>
-      <td>0.81</td>
+      <td>3453.0</td>
+      <td>0.78</td>
+      <td>1.00</td>
     </tr>
     <tr>
-      <th>9</th>
-      <td>Ibirama - Presidente Getúlio</td>
-      <td>Vestuário e acessórios</td>
+      <th>24</th>
+      <td>Campo Alegre</td>
+      <td>Veículos automotores</td>
       <td>Apagão de mão de obra</td>
-      <td>6596.0</td>
+      <td>2820.0</td>
+      <td>0.66</td>
+      <td>0.96</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>Sangão</td>
+      <td>Veículos automotores</td>
+      <td>Apagão de mão de obra</td>
+      <td>2131.0</td>
       <td>0.72</td>
       <td>1.00</td>
     </tr>
     <tr>
-      <th>12</th>
-      <td>São Bento do Sul - Rio Negrinho</td>
-      <td>Veículos automotores</td>
-      <td>Apagão de mão de obra</td>
-      <td>3671.0</td>
-      <td>0.63</td>
-      <td>0.90</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>Tubarão</td>
-      <td>Veículos automotores</td>
-      <td>Apagão de mão de obra</td>
-      <td>2398.0</td>
-      <td>0.68</td>
-      <td>1.00</td>
-    </tr>
-    <tr>
-      <th>17</th>
-      <td>Caçador</td>
-      <td>Couro e calçados</td>
-      <td>Apagão de mão de obra</td>
-      <td>1294.0</td>
-      <td>0.70</td>
-      <td>0.81</td>
-    </tr>
-    <tr>
-      <th>11</th>
-      <td>Ituporanga</td>
+      <th>27</th>
+      <td>Timbó</td>
       <td>Vestuário e acessórios</td>
       <td>Apagão de mão de obra</td>
-      <td>1139.0</td>
-      <td>0.64</td>
+      <td>1751.0</td>
+      <td>0.61</td>
+      <td>0.94</td>
+    </tr>
+    <tr>
+      <th>30</th>
+      <td>Tijucas</td>
+      <td>Vestuário e acessórios</td>
+      <td>Apagão de mão de obra</td>
+      <td>1452.0</td>
+      <td>0.67</td>
       <td>0.92</td>
     </tr>
     <tr>
-      <th>2</th>
-      <td>São Bento do Sul - Rio Negrinho</td>
-      <td>Produtos diversos</td>
+      <th>41</th>
+      <td>Morro da Fumaça</td>
+      <td>Vestuário e acessórios</td>
       <td>Apagão de mão de obra</td>
-      <td>778.0</td>
-      <td>0.56</td>
-      <td>1.00</td>
+      <td>1305.0</td>
+      <td>0.64</td>
+      <td>0.90</td>
     </tr>
     <tr>
-      <th>13</th>
-      <td>Araranguá</td>
-      <td>Máquinas e equipamentos</td>
+      <th>28</th>
+      <td>Treze de Maio</td>
+      <td>Vestuário e acessórios</td>
       <td>Apagão de mão de obra</td>
-      <td>743.0</td>
-      <td>0.48</td>
-      <td>0.89</td>
+      <td>1201.0</td>
+      <td>0.71</td>
+      <td>0.94</td>
+    </tr>
+    <tr>
+      <th>34</th>
+      <td>Ipumirim</td>
+      <td>Alimentos</td>
+      <td>Apagão de mão de obra</td>
+      <td>1167.0</td>
+      <td>0.66</td>
+      <td>0.92</td>
     </tr>
   </tbody>
 </table>
@@ -1626,90 +1693,90 @@ pd.read_csv(P + 'est_logit_pedido.csv')[['termo', 'razao_chance', 'ic95_inf', 'i
     <tr>
       <th>0</th>
       <td>faixa_esc = Médio</td>
-      <td>1.098</td>
-      <td>1.052</td>
-      <td>1.146</td>
-      <td>0.000</td>
+      <td>1.050</td>
+      <td>1.007</td>
+      <td>1.095</td>
+      <td>0.023</td>
       <td>NaN</td>
     </tr>
     <tr>
       <th>1</th>
       <td>faixa_esc = Superior incompleto</td>
-      <td>1.415</td>
-      <td>1.306</td>
-      <td>1.534</td>
+      <td>1.345</td>
+      <td>1.241</td>
+      <td>1.458</td>
       <td>0.000</td>
       <td>NaN</td>
     </tr>
     <tr>
       <th>2</th>
       <td>faixa_esc = Superior ou mais</td>
-      <td>1.668</td>
-      <td>1.530</td>
-      <td>1.818</td>
+      <td>1.585</td>
+      <td>1.456</td>
+      <td>1.727</td>
       <td>0.000</td>
       <td>NaN</td>
     </tr>
     <tr>
       <th>3</th>
       <td>faixa_idade = 14-24</td>
-      <td>1.084</td>
-      <td>1.041</td>
-      <td>1.128</td>
+      <td>1.095</td>
+      <td>1.052</td>
+      <td>1.140</td>
       <td>0.000</td>
       <td>NaN</td>
     </tr>
     <tr>
       <th>4</th>
       <td>faixa_idade = 25-29</td>
-      <td>1.021</td>
-      <td>0.982</td>
-      <td>1.061</td>
-      <td>0.292</td>
+      <td>1.026</td>
+      <td>0.987</td>
+      <td>1.066</td>
+      <td>0.198</td>
       <td>NaN</td>
     </tr>
     <tr>
       <th>5</th>
       <td>faixa_idade = 40-49</td>
-      <td>0.951</td>
-      <td>0.914</td>
-      <td>0.990</td>
-      <td>0.015</td>
+      <td>0.947</td>
+      <td>0.909</td>
+      <td>0.987</td>
+      <td>0.011</td>
       <td>NaN</td>
     </tr>
     <tr>
       <th>6</th>
       <td>faixa_idade = 50+</td>
-      <td>0.845</td>
-      <td>0.793</td>
-      <td>0.902</td>
+      <td>0.840</td>
+      <td>0.785</td>
+      <td>0.900</td>
       <td>0.000</td>
       <td>NaN</td>
     </tr>
     <tr>
       <th>7</th>
       <td>log_sal_cbo</td>
-      <td>0.420</td>
-      <td>0.366</td>
-      <td>0.483</td>
+      <td>0.417</td>
+      <td>0.360</td>
+      <td>0.482</td>
       <td>0.000</td>
-      <td>0.921</td>
+      <td>0.920</td>
     </tr>
     <tr>
       <th>8</th>
       <td>sal_rel_cbo</td>
-      <td>0.503</td>
-      <td>0.466</td>
-      <td>0.544</td>
+      <td>0.495</td>
+      <td>0.459</td>
+      <td>0.535</td>
       <td>0.000</td>
-      <td>0.937</td>
+      <td>0.935</td>
     </tr>
     <tr>
       <th>9</th>
       <td>mulher</td>
-      <td>1.108</td>
-      <td>1.065</td>
-      <td>1.153</td>
+      <td>1.103</td>
+      <td>1.062</td>
+      <td>1.146</td>
       <td>0.000</td>
       <td>NaN</td>
     </tr>
@@ -1719,11 +1786,11 @@ pd.read_csv(P + 'est_logit_pedido.csv')[['termo', 'razao_chance', 'ic95_inf', 'i
 
 
 
-**Leitura:** quem ganha até ~R\$ 2 mil pede demissão em 57% das saídas; acima de ~R\$ 3,6 mil, em 41%. Por escolaridade a taxa fica entre 51% e 55%. Na regressão logística, **pagar 10% acima da mediana da mesma ocupação reduz a chance de pedido de demissão em ~6%** (razão de chances 0,937), e quem tem superior tem 67% mais chance de pedir para sair: é disputado. Entre setores e regiões, salário de entrada e % a pedido têm correlação de Spearman de −0,43.
+**Leitura:** nas faixas salariais mais baixas (Q1–Q2) 57% das saídas são pedidos; na mais alta (Q5), 41%. Por escolaridade a taxa fica entre 51% e 55%. Na regressão logística (controles: setor, porte, idade, sexo; erros agrupados por CBO), **pagar 10% acima da mediana da mesma ocupação reduz a chance de pedido de demissão em ~6,5%** (razão de chances 0,935), e quem tem superior tem 59% mais chance de pedir para sair: é disputado. Entre os 538 polos município × setor, salário de entrada e % a pedido têm correlação de Spearman de −0,38, e a % de admitidos só com fundamental, de +0,40.
 
 
 ```python
-pd.read_csv(P + 'est_correlacoes.csv').query("nivel == 'regiao_setor'")[['var_x', 'var_y', 'rho', 'p_valor', 'n']].round(3)
+pd.read_csv(P + 'est_correlacoes.csv').query("nivel == 'municipio_setor'")[['var_x', 'var_y', 'rho', 'p_valor', 'n']].round(3)
 ```
 
 
@@ -1759,129 +1826,129 @@ pd.read_csv(P + 'est_correlacoes.csv').query("nivel == 'regiao_setor'")[['var_x'
       <th>6</th>
       <td>salario_mediano_adm</td>
       <td>pct_pedido_demissao</td>
-      <td>-0.430</td>
+      <td>-0.376</td>
       <td>0.000</td>
-      <td>285</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>7</th>
       <td>salario_mediano_adm</td>
       <td>indice_pressao</td>
-      <td>-0.397</td>
+      <td>-0.295</td>
       <td>0.000</td>
-      <td>285</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>8</th>
       <td>salario_mediano_adm</td>
       <td>premio_salarial</td>
-      <td>-0.111</td>
-      <td>0.061</td>
-      <td>284</td>
+      <td>-0.007</td>
+      <td>0.876</td>
+      <td>537</td>
     </tr>
     <tr>
       <th>9</th>
       <td>salario_mediano_adm</td>
       <td>saldo_10k_hab</td>
-      <td>0.149</td>
-      <td>0.012</td>
-      <td>285</td>
+      <td>0.057</td>
+      <td>0.184</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>10</th>
       <td>pct_superior_adm</td>
       <td>pct_pedido_demissao</td>
-      <td>-0.311</td>
+      <td>-0.309</td>
       <td>0.000</td>
-      <td>285</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>11</th>
       <td>pct_superior_adm</td>
       <td>indice_pressao</td>
-      <td>-0.326</td>
+      <td>-0.283</td>
       <td>0.000</td>
-      <td>285</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>12</th>
       <td>pct_superior_adm</td>
       <td>premio_salarial</td>
-      <td>-0.134</td>
-      <td>0.024</td>
-      <td>284</td>
+      <td>-0.114</td>
+      <td>0.008</td>
+      <td>537</td>
     </tr>
     <tr>
       <th>13</th>
       <td>pct_superior_adm</td>
       <td>saldo_10k_hab</td>
-      <td>0.080</td>
-      <td>0.177</td>
-      <td>285</td>
+      <td>0.007</td>
+      <td>0.870</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>14</th>
       <td>pct_ate_fundamental_adm</td>
       <td>pct_pedido_demissao</td>
-      <td>0.370</td>
+      <td>0.400</td>
       <td>0.000</td>
-      <td>285</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>15</th>
       <td>pct_ate_fundamental_adm</td>
       <td>indice_pressao</td>
-      <td>0.219</td>
+      <td>0.226</td>
       <td>0.000</td>
-      <td>285</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>16</th>
       <td>pct_ate_fundamental_adm</td>
       <td>premio_salarial</td>
-      <td>-0.100</td>
-      <td>0.093</td>
-      <td>284</td>
+      <td>-0.056</td>
+      <td>0.192</td>
+      <td>537</td>
     </tr>
     <tr>
       <th>17</th>
       <td>pct_ate_fundamental_adm</td>
       <td>saldo_10k_hab</td>
-      <td>0.044</td>
-      <td>0.460</td>
-      <td>285</td>
+      <td>0.074</td>
+      <td>0.085</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>18</th>
       <td>idade_media_adm</td>
       <td>pct_pedido_demissao</td>
-      <td>-0.320</td>
+      <td>-0.235</td>
       <td>0.000</td>
-      <td>285</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>19</th>
       <td>idade_media_adm</td>
       <td>indice_pressao</td>
-      <td>-0.151</td>
-      <td>0.011</td>
-      <td>285</td>
+      <td>-0.007</td>
+      <td>0.863</td>
+      <td>538</td>
     </tr>
     <tr>
       <th>20</th>
       <td>idade_media_adm</td>
       <td>premio_salarial</td>
-      <td>0.194</td>
-      <td>0.001</td>
-      <td>284</td>
+      <td>0.244</td>
+      <td>0.000</td>
+      <td>537</td>
     </tr>
     <tr>
       <th>21</th>
       <td>idade_media_adm</td>
       <td>saldo_10k_hab</td>
-      <td>-0.084</td>
-      <td>0.156</td>
-      <td>285</td>
+      <td>-0.069</td>
+      <td>0.108</td>
+      <td>538</td>
     </tr>
   </tbody>
 </table>
@@ -1907,9 +1974,11 @@ sorted(p.name for p in pipeline.OUT.glob('*.csv'))
     api/est_sazonalidade_mensal.json                    432 linhas
     api/est_sazonalidade_resumo.json                     36 linhas
     api/est_sensibilidade_cenarios.json                  48 linhas
-    api/est_sensibilidade_pares.json                    503 linhas
+    api/est_sensibilidade_pares.json                   3105 linhas
+    api/est_sensibilidade_pares_regiao.json             503 linhas
     api/ind_macrofamilia.json                            17 linhas
     api/ind_municipio.json                              294 linhas
+    api/ind_municipio_setor.json                       3105 linhas
     api/ind_regiao_macrofamilia.json                    119 linhas
     api/ind_regiao_setor.json                           503 linhas
     api/log_limpeza.json                                  6 linhas
@@ -1927,8 +1996,10 @@ sorted(p.name for p in pipeline.OUT.glob('*.csv'))
      'est_sazonalidade_resumo.csv',
      'est_sensibilidade_cenarios.csv',
      'est_sensibilidade_pares.csv',
+     'est_sensibilidade_pares_regiao.csv',
      'ind_macrofamilia.csv',
      'ind_municipio.csv',
+     'ind_municipio_setor.csv',
      'ind_regiao_macrofamilia.csv',
      'ind_regiao_setor.csv',
      'log_limpeza.csv',
@@ -1949,20 +2020,20 @@ Para cada polo com alerta ou expansão, `dashboard/acionamento.py` escolhe **um*
 ```python
 sys.path.insert(0, '../dashboard')
 import acionamento
-ac = acionamento.calcular(ind, pd.read_csv(P + 'ind_regiao_setor.csv').merge(
-    pd.read_csv(P + 'est_sensibilidade_pares.csv')[['regiao_imediata', 'setor', 'estabilidade', 'pct_cenarios_alerta']],
-    on=['regiao_imediata', 'setor'], how='left').merge(
-    mun[['regiao_imediata', 'regiao_intermediaria']].drop_duplicates(), on='regiao_imediata').assign(
-    robusto=lambda x: x['diagnostico'].isin(acionamento.ALERTAS) & (x['estabilidade'] == 'Alerta robusto')))
+rs = pd.read_csv(P + 'ind_municipio_setor.csv').merge(
+    pd.read_csv(P + 'est_sensibilidade_pares.csv')[['cod_ibge', 'setor', 'estabilidade', 'pct_cenarios_alerta']],
+    on=['cod_ibge', 'setor'], how='left')
+rs['robusto'] = rs['diagnostico'].isin(acionamento.ALERTAS) & (rs['estabilidade'] == 'Alerta robusto')
+ac = acionamento.calcular(ind, rs)
 print(ac['parceiro'].value_counts().to_string()); print('Way2 (secundário):', (ac['secundario'] == 'Way2').sum())
-ac[ac['parceiro'] != 'Monitorar'][['setor', 'regiao_imediata', 'diagnostico', 'parceiro', 'familia_ia', 'porque']].head(10)
+ac[ac['parceiro'] != 'Monitorar'][['setor', 'municipio_nome', 'diagnostico', 'parceiro', 'familia_ia', 'porque']].head(10)
 ```
 
     parceiro
-    Monitorar           28
-    UniSENAI            12
-    Empresas do polo     8
-    Awtra                8
+    Monitorar           73
+    Awtra               25
+    Empresas do polo    19
+    UniSENAI             9
     Way2 (secundário): 2
 
 
@@ -1988,7 +2059,7 @@ ac[ac['parceiro'] != 'Monitorar'][['setor', 'regiao_imediata', 'diagnostico', 'p
     <tr style="text-align: right;">
       <th></th>
       <th>setor</th>
-      <th>regiao_imediata</th>
+      <th>municipio_nome</th>
       <th>diagnostico</th>
       <th>parceiro</th>
       <th>familia_ia</th>
@@ -1999,92 +2070,92 @@ ac[ac['parceiro'] != 'Monitorar'][['setor', 'regiao_imediata', 'diagnostico', 'p
     <tr>
       <th>0</th>
       <td>Alimentos</td>
-      <td>Joaçaba - Herval d'Oeste</td>
+      <td>Itapiranga</td>
       <td>Expansão sob pressão</td>
-      <td>Empresas do polo</td>
-      <td>Agroindústria e Alimentos</td>
-      <td>Salário de entrada de R$ 2.035, 3% abaixo da m...</td>
+      <td>Awtra</td>
+      <td>Produção de Base (Linha e Embalagem)</td>
+      <td>O salário já está na média do setor (R$ 2.084)...</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>Vestuário e acessórios</td>
-      <td>Ibirama - Presidente Getúlio</td>
-      <td>Apagão de mão de obra</td>
-      <td>Empresas do polo</td>
-      <td>Têxtil, Vestuário, Couro e Calçados</td>
-      <td>Salário de entrada de R$ 1.936, 8% abaixo da m...</td>
-    </tr>
-    <tr>
-      <th>2</th>
       <td>Veículos automotores</td>
-      <td>São Bento do Sul - Rio Negrinho</td>
+      <td>Campo Alegre</td>
       <td>Apagão de mão de obra</td>
       <td>Empresas do polo</td>
       <td>Metalmecânica e Montagem</td>
       <td>Salário de entrada de R$ 2.000, 8% abaixo da m...</td>
     </tr>
     <tr>
-      <th>3</th>
+      <th>2</th>
       <td>Veículos automotores</td>
-      <td>Tubarão</td>
+      <td>Sangão</td>
       <td>Apagão de mão de obra</td>
       <td>Awtra</td>
       <td>Metalmecânica e Montagem</td>
       <td>O salário já está na média do setor (R$ 2.413)...</td>
     </tr>
     <tr>
-      <th>4</th>
-      <td>Couro e calçados</td>
-      <td>Caçador</td>
+      <th>3</th>
+      <td>Vestuário e acessórios</td>
+      <td>Timbó</td>
       <td>Apagão de mão de obra</td>
       <td>Awtra</td>
       <td>Têxtil, Vestuário, Couro e Calçados</td>
-      <td>O salário já está na média do setor (R$ 1.910)...</td>
+      <td>O salário já está na média do setor (R$ 2.300)...</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Vestuário e acessórios</td>
+      <td>Tijucas</td>
+      <td>Apagão de mão de obra</td>
+      <td>Awtra</td>
+      <td>Têxtil, Vestuário, Couro e Calçados</td>
+      <td>O salário já está na média do setor (R$ 2.200)...</td>
     </tr>
     <tr>
       <th>5</th>
       <td>Vestuário e acessórios</td>
-      <td>Ituporanga</td>
+      <td>Treze de Maio</td>
       <td>Apagão de mão de obra</td>
-      <td>Awtra</td>
+      <td>Empresas do polo</td>
       <td>Têxtil, Vestuário, Couro e Calçados</td>
-      <td>O salário já está na média do setor (R$ 2.150)...</td>
+      <td>Salário de entrada de R$ 1.837, 12% abaixo da ...</td>
     </tr>
     <tr>
       <th>6</th>
       <td>Vestuário e acessórios</td>
-      <td>Maravilha</td>
+      <td>Morro da Fumaça</td>
       <td>Apagão de mão de obra</td>
       <td>Empresas do polo</td>
       <td>Têxtil, Vestuário, Couro e Calçados</td>
-      <td>Salário de entrada de R$ 1.882, 10% abaixo da ...</td>
+      <td>Salário de entrada de R$ 1.961, 7% abaixo da m...</td>
     </tr>
     <tr>
       <th>7</th>
-      <td>Produtos diversos</td>
-      <td>São Bento do Sul - Rio Negrinho</td>
+      <td>Alimentos</td>
+      <td>Ipumirim</td>
       <td>Apagão de mão de obra</td>
       <td>Awtra</td>
       <td>Produção de Base (Linha e Embalagem)</td>
-      <td>O salário já está na média do setor (R$ 2.350)...</td>
+      <td>O salário já está na média do setor (R$ 2.054)...</td>
     </tr>
     <tr>
       <th>8</th>
-      <td>Madeira</td>
-      <td>São Miguel do Oeste</td>
+      <td>Vestuário e acessórios</td>
+      <td>Rio dos Cedros</td>
       <td>Apagão de mão de obra</td>
-      <td>Empresas do polo</td>
-      <td>Produção de Base (Linha e Embalagem)</td>
-      <td>Salário de entrada de R$ 1.830, 8% abaixo da m...</td>
+      <td>Awtra</td>
+      <td>Têxtil, Vestuário, Couro e Calçados</td>
+      <td>O salário já está na média do setor (R$ 2.130)...</td>
     </tr>
     <tr>
       <th>9</th>
-      <td>Máquinas e equipamentos</td>
-      <td>Araranguá</td>
+      <td>Produtos de metal</td>
+      <td>Corupá</td>
       <td>Apagão de mão de obra</td>
       <td>Awtra</td>
       <td>Metalmecânica e Montagem</td>
-      <td>O salário já está na média do setor (R$ 2.600)...</td>
+      <td>O salário já está na média do setor (R$ 2.456)...</td>
     </tr>
   </tbody>
 </table>
@@ -2094,10 +2165,116 @@ ac[ac['parceiro'] != 'Monitorar'][['setor', 'regiao_imediata', 'diagnostico', 'p
 
 ## 7. Conclusões, recomendações e limites
 1. **A indústria gira o quadro mas não cresce:** 835.776 movimentações para +1.098 vagas, ou 761 movimentações por vaga criada.
-2. **O apagão é de retenção:** 51% das saídas são pedidos do trabalhador. São 16 polos em alerta robusto, liderados por alimentos em Joaçaba, vestuário em Ibirama e Ituporanga, veículos em São Bento do Sul e Tubarão e calçados em Caçador.
-3. **Salário segura, diploma não:** a taxa de pedido cai de 57% para 41% do menor ao maior salário e quase não varia por escolaridade.
-4. **IA:** Agroindústria e Alimentos, Produção de Base e Têxtil/Vestuário perdem 55–60% por pedido e pagam ~R\$ 2,1 mil na entrada.
+2. **O apagão é de retenção:** 51% das saídas são pedidos do trabalhador. Dos 538 polos município × setor analisados, **44 estão em alerta robusto**, liderados por alimentos em Itapiranga (78% a pedido), veículos em Campo Alegre e Sangão e vestuário em Timbó, Tijucas, Morro da Fumaça e Treze de Maio.
+3. **Expansão concentrada:** veículos/equipamentos de transporte em Navegantes (+1.620 e +625) e alimentos em Chapecó (+1.273) e Guatambú (+551).
+4. **Salário segura, diploma não:** a taxa de pedido cai de 57% para 41% do menor ao maior salário e quase não varia por escolaridade.
+5. **IA:** Agroindústria e Alimentos, Produção de Base e Têxtil/Vestuário perdem 55–60% por pedido e pagam ~R\$ 2,1 mil na entrada.
 
-**Recomendações (FIESC como hub):** UniSENAI com formação nos polos em expansão e trilhas de carreira nas famílias de base; Way2 com eficiência energética e dados de energia nos polos que crescem; Awtra com onboarding de compliance nos polos de alta rotatividade; indústrias com piso de entrada competitivo e retenção.
+**Recomendações (FIESC como hub):** UniSENAI com formação nos polos em expansão; empresas do polo revendo piso onde o salário de entrada está abaixo do setor; Awtra com integração e lideranças onde o salário está na média e a rotatividade segue alta; Way2 como apoio em polos eletrointensivos que crescem.
 
-**Limites:** o CAGED mede fluxo, não vagas abertas; só a base MOV foi fornecida; correlação e regressão indicam associação, não causalidade.
+**Limites:** só as bases do desafio entram no diagnóstico; o CAGED mede fluxo, não vagas abertas; só a base MOV foi fornecida; correlação e regressão indicam associação, não causalidade.
+
+## Apêndice bônus: fontes externas (fora das regras do desafio)
+Esta seção **não entra no diagnóstico nem nos indicadores principais**. Ela mostra o que muda ao cruzar os mesmos dados com as regiões geográficas imediatas e intermediárias do IBGE (2017), arquivo `data/externos/regioes_ibge.csv`. Se o arquivo for removido, o pipeline roda normalmente e esta célula é pulada.
+
+
+```python
+from pathlib import Path
+if Path(P + 'ind_regiao_setor.csv').exists():
+    rr = pd.read_csv(P + 'est_sensibilidade_pares_regiao.csv')
+    rr = rr[rr['diagnostico'].isin(['Apagão de mão de obra', 'Expansão sob pressão']) & (rr['estabilidade'] == 'Alerta robusto')]
+    print(len(rr), 'polos região imediata × setor em alerta robusto (visão bônus)')
+    display(rr.nlargest(8, 'movimentacoes')[['regiao_imediata', 'setor', 'movimentacoes', 'pct_pedido_demissao']].round(2))
+else:
+    print('Fontes externas ausentes: apêndice não executado.')
+```
+
+    16 polos região imediata × setor em alerta robusto (visão bônus)
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>regiao_imediata</th>
+      <th>setor</th>
+      <th>movimentacoes</th>
+      <th>pct_pedido_demissao</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>18</th>
+      <td>Joaçaba - Herval d'Oeste</td>
+      <td>Alimentos</td>
+      <td>12233.0</td>
+      <td>0.68</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>Ibirama - Presidente Getúlio</td>
+      <td>Vestuário e acessórios</td>
+      <td>6596.0</td>
+      <td>0.72</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>São Bento do Sul - Rio Negrinho</td>
+      <td>Veículos automotores</td>
+      <td>3671.0</td>
+      <td>0.63</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>Tubarão</td>
+      <td>Veículos automotores</td>
+      <td>2398.0</td>
+      <td>0.68</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>Caçador</td>
+      <td>Couro e calçados</td>
+      <td>1294.0</td>
+      <td>0.70</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>Ituporanga</td>
+      <td>Vestuário e acessórios</td>
+      <td>1139.0</td>
+      <td>0.64</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>São Bento do Sul - Rio Negrinho</td>
+      <td>Produtos diversos</td>
+      <td>778.0</td>
+      <td>0.56</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>Araranguá</td>
+      <td>Máquinas e equipamentos</td>
+      <td>743.0</td>
+      <td>0.48</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+

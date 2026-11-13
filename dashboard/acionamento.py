@@ -1,5 +1,5 @@
 """
-Motor de acionamento: para cada polo (região imediata × setor) com diagnóstico de alerta ou expansão,
+Motor de acionamento: para cada polo (município × setor) com diagnóstico de alerta ou expansão,
 escolhe UM parceiro principal para a FIESC acionar (e, só quando o critério é forte, um secundário),
 sempre com a justificativa tirada dos indicadores.
 
@@ -43,17 +43,17 @@ def calcular(ind: pd.DataFrame, rs: pd.DataFrame, min_mov: int = 300) -> pd.Data
                rs["diagnostico"].isin(ALERTAS + ["Expansão acelerada"])].copy()
 
     # Família de ocupações (IA) mais afetada: a que mais pede para sair (alertas) ou a mais contratada (expansão)
-    chave = ["setor", "regiao_imediata"]
+    chave = ["setor", "municipio_nome"]
     ped = (dd[dd["pedido"]].groupby(chave + ["macrofamilia"], observed=True).size()
            .reset_index(name="n").sort_values("n").drop_duplicates(chave, keep="last"))
     adm = (ind[ind["admissao"]].groupby(chave + ["macrofamilia"], observed=True).size()
            .reset_index(name="n").sort_values("n").drop_duplicates(chave, keep="last"))
-    fam_ped = {(r.setor, r.regiao_imediata): (r.macrofamilia, r.n) for r in ped.itertuples()}
-    fam_adm = {(r.setor, r.regiao_imediata): (r.macrofamilia, r.n) for r in adm.itertuples()}
+    fam_ped = {(r.setor, r.municipio_nome): (r.macrofamilia, r.n) for r in ped.itertuples()}
+    fam_adm = {(r.setor, r.municipio_nome): (r.macrofamilia, r.n) for r in adm.itertuples()}
 
     linhas = []
     for p in polos.itertuples():
-        k = (p.setor, p.regiao_imediata)
+        k = (p.setor, p.municipio_nome)
         mediana = sal_setor.get(p.setor, np.nan)
         gap = p.salario_mediano_adm / mediana - 1 if mediana and not np.isnan(p.salario_mediano_adm) else np.nan
         pedidos_ano = p.desligamentos * p.pct_pedido_demissao
@@ -102,7 +102,7 @@ def calcular(ind: pd.DataFrame, rs: pd.DataFrame, min_mov: int = 300) -> pd.Data
                 sec_porque = (f"{p.setor} é eletrointensivo e o polo cresce +{_br(p.saldo)} vagas: a demanda de energia "
                               "sobe junto. Telemetria e eficiência energética reduzem o custo da expansão.")
         linhas.append(dict(
-            setor=p.setor, regiao_imediata=p.regiao_imediata, regiao_intermediaria=p.regiao_intermediaria,
+            setor=p.setor, cod_ibge=p.cod_ibge, municipio_nome=p.municipio_nome,
             diagnostico=p.diagnostico, robusto=robusto, movimentacoes=p.movimentacoes, saldo=p.saldo,
             pct_pedido=p.pct_pedido_demissao, salario=p.salario_mediano_adm, gap_salario=gap,
             familia_ia=fam, impacto=impacto, impacto_txt=impacto_txt, parceiro=parceiro, porque=porque,

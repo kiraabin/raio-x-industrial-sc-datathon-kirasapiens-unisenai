@@ -75,9 +75,8 @@ def base(ind: pd.DataFrame, municipios: pd.DataFrame, nivel: str, min_mov: int =
     m = municipios.copy()
     m["pib_total"] = m["pib_per_capita_2023"] * m["pop_censo_2022"]
     if nivel == "Município":
-        t = _agregar(ind, "cod_ibge").join(m.set_index("cod_ibge")[
-            ["municipio_nome", "regiao_imediata", "pop_estimada_2026", "pib_per_capita_2023", "idhm_2010",
-             "escolarizacao_6_14"]], how="inner")
+        cols = ["municipio_nome", "pop_estimada_2026", "pib_per_capita_2023", "idhm_2010", "escolarizacao_6_14"]
+        t = _agregar(ind, "cod_ibge").join(m.set_index("cod_ibge")[cols], how="inner")
         t = t.rename(columns={"municipio_nome": "nome", "pop_estimada_2026": "pop", "pib_per_capita_2023": "pib_pc",
                               "idhm_2010": "idhm", "escolarizacao_6_14": "escolarizacao"})
     else:
@@ -89,7 +88,6 @@ def base(ind: pd.DataFrame, municipios: pd.DataFrame, nivel: str, min_mov: int =
                                         weights=x["pop_censo_2022"])}), include_groups=False)
         t = _agregar(ind, "regiao_imediata").join(demo, how="inner")
         t["nome"] = t.index.astype(str)
-        t["regiao_imediata"] = t["nome"]
     t = t[t["mov"] >= min_mov].copy()
     t["saldo"] = t["adm"] - t["desl"]
     t["saldo_10k"] = t["saldo"] / t["pop"] * 10_000
@@ -137,6 +135,6 @@ def leitura(linha: pd.Series, ac: pd.DataFrame | None = None) -> str:
         a = ac[ac["parceiro"] != "Monitorar"]
         if len(a):
             p = a.iloc[0]
-            partes.append(f" No polo de <b>{p['setor']}</b> da região, o Raio-X recomenda acionar "
+            partes.append(f" No polo de <b>{p['setor']}</b> ({p['municipio_nome']}), o Raio-X recomenda acionar "
                           f"<b>{p['parceiro']}</b>.")
     return "".join(partes)

@@ -33,7 +33,7 @@ def rs():
 
 # ---------------------------------------------------------------- indicadores
 
-@pytest.mark.parametrize("arquivo", ["ind_regiao_setor", "ind_municipio", "ind_macrofamilia",
+@pytest.mark.parametrize("arquivo", ["ind_regiao_setor", "ind_municipio", "ind_macrofamilia", "ind_municipio_setor",
                                      "ind_regiao_macrofamilia"])
 def test_classificar_padrao_reproduz_tabelas(arquivo):
     t = pd.read_csv(P / f"{arquivo}.csv")
@@ -128,7 +128,7 @@ def test_escolaridade_cubo_cobre_todas_as_movimentacoes(ind):
 
 def test_geojson_cobre_todos_os_municipios():
     """Pescaria Brava e Balneário Rincão (criados em 2013) já ficaram sem polígono; o mapa não pode ter buraco."""
-    geo = json.loads((ROOT / "data/sc_municipios.geojson").read_text())
+    geo = json.loads((ROOT / "data/externos/sc_municipios.geojson").read_text())
     ids = {int(f["properties"]["id"]) for f in geo["features"]}
     mun = pd.read_csv(P / "municipios.csv")
     assert set(mun["cod_ibge"]) == ids
@@ -136,7 +136,7 @@ def test_geojson_cobre_todos_os_municipios():
 
 
 def test_regioes_batem_com_a_base_oficial_do_ibge():
-    ibge = pd.read_csv(ROOT / "data/regioes_ibge.csv").set_index("cod_municipio")
+    ibge = pd.read_csv(ROOT / "data/externos/regioes_ibge.csv").set_index("cod_municipio")
     mun = pd.read_csv(P / "municipios.csv").set_index("cod_ibge")
     assert mun["regiao_intermediaria"].nunique() == 7 and mun["regiao_imediata"].nunique() == 24
     ref = ibge.loc[mun.index]

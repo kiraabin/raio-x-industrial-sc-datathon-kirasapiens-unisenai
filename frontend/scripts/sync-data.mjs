@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const raiz = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const dest = resolve(raiz, "frontend", "public", "data");
 const api = resolve(raiz, "data", "processed", "api");
-const geo = resolve(raiz, "data", "sc_municipios.geojson");
+const geo = resolve(raiz, "data", "externos", "sc_municipios.geojson");
 
 if (!existsSync(api)) {
   console.error("Falta " + api + ". Rode o backend (backend/exportar.py) primeiro.");

@@ -1,22 +1,24 @@
 """
 Pipeline do Raio-X do Mercado de Trabalho Industrial de SC.
 
-Entradas (raw/):
+Entradas (raw/) — as únicas bases do diagnóstico principal (fornecidas pelo desafio):
     Novo_Caged_MOV_Limpo.csv     microdados de movimentação (12 meses, SC)
-    Municipios_SC_limpo.csv      dados municipais (IBGE)
+    Municipios_SC_limpo.csv      dados municipais
     Dicionario_de_dados.xlsx     dicionário do Novo CAGED
-Entradas de apoio (data/):
-    regioes_ibge.csv             composição oficial das regiões geográficas imediatas
-                                 e intermediárias (IBGE, 2017)
+Apoio gerado pela equipe (data/):
     cbo_macrofamilias.csv        subgrupo CBO -> macrofamília (gerado com IA, ver backend/cbo_llm.py)
+Opcional, FORA das bases do desafio (data/externos/, só para o filtro "Bônus" do painel):
+    regioes_ibge.csv             regiões geográficas imediatas e intermediárias (IBGE, 2017)
+    sc_municipios.geojson        malha municipal (IBGE)
 
 Saídas (data/processed/):
     industria.parquet            microdados limpos da indústria de transformação (base do dashboard)
-    municipios.csv               municípios enriquecidos com região
-    ind_regiao_setor.csv         indicadores região imediata x setor industrial (divisão CNAE)
-    ind_macrofamilia.csv         indicadores por macrofamília de CBO
-    ind_regiao_macrofamilia.csv  indicadores região intermediária x macrofamília
+    municipios.csv               base municipal tratada
+    ind_municipio_setor.csv      polos: município x setor industrial (divisão CNAE)  <- diagnóstico principal
     ind_municipio.csv            indicadores por município (indústria)
+    ind_macrofamilia.csv         indicadores por macrofamília de CBO
+    ind_regiao_setor.csv         [bônus] região imediata x setor
+    ind_regiao_macrofamilia.csv  [bônus] região intermediária x macrofamília
     log_limpeza.csv              volumetria de cada etapa de limpeza
 """
 from pathlib import Path
@@ -78,7 +80,12 @@ def carregar_municipios() -> pd.DataFrame:
     m["cod_ibge"] = m["cod_ibge"].astype(int)
     m["cod_caged"] = m["cod_ibge"] // 10  # CAGED usa 6 dígitos (sem dígito verificador)
 
-    reg = pd.read_csv(ROOT / "data/regioes_ibge.csv")
+    # DADO EXTERNO (fora das bases do desafio): regiões geográficas do IBGE. Só alimenta a seção
+    # "Dados externos" do painel; o diagnóstico principal usa apenas município (base fornecida).
+    arq_reg = ROOT / "data/externos/regioes_ibge.csv"
+    if not arq_reg.exists():
+        return m
+    reg = pd.read_csv(arq_reg)
     reg = reg[reg["cod_municipio"].between(4200000, 4299999)]
     reg = reg.rename(columns={"cod_municipio": "cod_ibge"})
     reg["regiao_intermediaria"] = reg["regiao_intermediaria"].map(NOMES_REGIAO)
@@ -89,7 +96,6 @@ def carregar_municipios() -> pd.DataFrame:
     m = m.merge(reg[["cod_ibge", "cod_reg_imediata", "regiao_imediata",
                      "cod_reg_intermediaria", "regiao_intermediaria"]],
                 on="cod_ibge", how="left")
-    assert m["regiao_intermediaria"].notna().all(), "município sem região"
     return m
 
 
@@ -160,41 +166,46 @@ def main():
     mun = carregar_municipios()
     df = carregar_caged(registro, mun)
     df = enriquecer(df, mun)
-    assert df["regiao_intermediaria"].notna().all(), "movimentação sem município IBGE"
+    assert df["cod_ibge"].notna().all(), "movimentação sem município na base fornecida"
 
     ind = df[df["seção"] == "C"].copy()
     log("Indústria de transformação (seção C)", ind, registro)
     log(" ...das quais com salário válido p/ comparações", ind[ind["salario_valido"]], registro)
 
-    cols = ["competênciamov", "cod_ibge", "municipio_nome", "regiao_imediata",
-            "regiao_intermediaria", "divisao_cnae", "setor", "cbo", "macrofamilia",
+    externos = [c for c in ["regiao_imediata", "regiao_intermediaria"] if c in ind.columns]
+    cols = ["competênciamov", "cod_ibge", "municipio_nome"] + externos + ["divisao_cnae", "setor", "cbo", "macrofamilia",
             "nivel_ocupacao", "admissao", "pedido", "tipomovimentação", "salario",
             "salario_valido", "graudeinstrução", "idade", "sexo", "tamestabjan"]
     ind = ind[cols]
-    for c in ["municipio_nome", "regiao_imediata", "regiao_intermediaria", "setor",
-              "macrofamilia", "nivel_ocupacao", "divisao_cnae"]:
+    for c in ["municipio_nome", "setor", "macrofamilia", "nivel_ocupacao", "divisao_cnae"] + externos:
         ind[c] = ind[c].astype("category")
     ind.to_parquet(OUT / "industria.parquet", index=False)
     mun.drop(columns=["prefeito", "gentilico"]).to_csv(OUT / "municipios.csv", index=False)
 
     pop_mun = mun.set_index("cod_ibge")["pop_estimada_2026"]
-    pop_imed = mun.groupby("regiao_imediata")["pop_estimada_2026"].sum()
-    pop_inter = mun.groupby("regiao_intermediaria")["pop_estimada_2026"].sum()
+    nomes_reg = [c for c in ["regiao_imediata", "regiao_intermediaria"] if c in mun.columns]
 
-    t = classificar(tabela(ind, ["regiao_imediata", "setor"], pop_imed))
-    t.to_csv(OUT / "ind_regiao_setor.csv", index=False)
-
+    # ---- Diagnóstico principal: só bases do desafio (CAGED + municípios + dicionário) ----
     classificar(tabela(ind, ["macrofamilia"])).to_csv(OUT / "ind_macrofamilia.csv", index=False)
-    classificar(tabela(ind, ["regiao_intermediaria", "macrofamilia"], pop_inter)).to_csv(
-        OUT / "ind_regiao_macrofamilia.csv", index=False)
     tm = tabela(ind, ["cod_ibge"], pop_mun)
-    tm = tm.merge(mun[["cod_ibge", "municipio_nome", "regiao_imediata", "regiao_intermediaria"]],
-                  on="cod_ibge")
+    tm = tm.merge(mun[["cod_ibge", "municipio_nome"] + nomes_reg], on="cod_ibge")
     classificar(tm).to_csv(OUT / "ind_municipio.csv", index=False)
+    ms = classificar(tabela(ind, ["cod_ibge", "setor"], pop_mun))
+    ms = ms.merge(mun[["cod_ibge", "municipio_nome"] + nomes_reg], on="cod_ibge")
+    ms.to_csv(OUT / "ind_municipio_setor.csv", index=False)
+
+    # ---- Seção externa (regiões do IBGE): só se o arquivo externo estiver presente ----
+    if nomes_reg:
+        pop_imed = mun.groupby("regiao_imediata")["pop_estimada_2026"].sum()
+        pop_inter = mun.groupby("regiao_intermediaria")["pop_estimada_2026"].sum()
+        classificar(tabela(ind, ["regiao_imediata", "setor"], pop_imed)).to_csv(
+            OUT / "ind_regiao_setor.csv", index=False)
+        classificar(tabela(ind, ["regiao_intermediaria", "macrofamilia"], pop_inter)).to_csv(
+            OUT / "ind_regiao_macrofamilia.csv", index=False)
 
     pd.DataFrame(registro).to_csv(OUT / "log_limpeza.csv", index=False)
-    print("\nDiagnóstico região x setor:")
-    print(t["diagnostico"].value_counts().to_string())
+    print("\nDiagnóstico município × setor (bases do desafio):")
+    print(ms["diagnostico"].value_counts().to_string())
 
 
 if __name__ == "__main__":
