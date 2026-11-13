@@ -11,7 +11,7 @@ Desafio prático de análise de dados e inteligência artificial, Bacharelado em
 ![Dados](https://img.shields.io/badge/dados-Novo%20CAGED-informational)
 ![Região](https://img.shields.io/badge/regi%C3%A3o-SC-success)
 
-**[▶ Abrir o painel online](https://raio-x-industrial-sc.streamlit.app)**
+**[▶ Abrir o painel online](https://raio-x-industrial-sc.streamlit.app)** · **[📄 Pitch (PDF)](docs/Raio-X%20Industrial%20SC%20-%20Pitch.pdf)**
 </div>
 
 ---
@@ -88,7 +88,7 @@ Visual: base branca com azul, letras grandes e cores vivas nos gráficos (`.stre
 |:---:|:---:|
 | Scripts ou notebook da análise | concluído: `notebooks/raio_x_industria_sc.ipynb` e `backend/` |
 | Painel analítico (dashboard) | concluído: [raio-x-industrial-sc.streamlit.app](https://raio-x-industrial-sc.streamlit.app) (`dashboard/app.py`) |
-| Pitch de 3 minutos em slides | em revisão final |
+| Pitch de 3 minutos em slides | concluído: [`docs/Raio-X Industrial SC - Pitch.pdf`](docs/Raio-X%20Industrial%20SC%20-%20Pitch.pdf) |
 
 Todas as entregas saem deste repositório Git público.
 
