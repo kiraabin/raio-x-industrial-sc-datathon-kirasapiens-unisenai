@@ -55,7 +55,7 @@ def gerar(d: dict, municipio: str | None, setor: str | None = None) -> list[dict
                         nota=f"{len(rob)} polos com alerta robusto no recorte"))
     else:
         out.append(dict(tipo="ok", ic="✅", tx="Nenhum polo (município × setor) com <b>alerta robusto</b> de apagão "
-                        "neste recorte.", nota="Alerta robusto = mantém-se em 80%+ das 36 calibrações do índice"))
+                        "neste recorte.", nota="Alerta robusto = mantém-se em mais de 80% das calibrações aplicáveis (até 48)"))
 
     # 3. Quem mais cria vagas
     if setor:
@@ -93,7 +93,7 @@ def gerar(d: dict, municipio: str | None, setor: str | None = None) -> list[dict
     # 6. Escolaridade
     sup = ind.loc[ind["admissao"], "graudeinstrução"].isin(ESC_SUPERIOR).mean()
     out.append(dict(tipo="info", ic="🎓", tx=f"Só <b>{fmt_pct(sup, 1)}</b> dos admitidos têm ensino superior: a "
-                    "demanda é operacional. O gargalo é retenção, não diploma.", nota="Grau de instrução 9 a 11 e 80"))
+                    "demanda é operacional, e os sinais de pressão aparecem mais na retenção do que na falta de diploma.", nota="Grau de instrução 9 a 11 e 80"))
 
     # 7. Pior mês
     mm = mensal(ind)

@@ -59,7 +59,7 @@ def carregar() -> dict:
                  "est_sensibilidade_pares", "est_sensibilidade_cenarios", "validacao_schema"]:
         d[nome] = pd.read_csv(P / f"{nome}.csv")
 
-    # Polos = município × setor, com a robustez do alerta (36 calibrações)
+    # Polos = município × setor, com a robustez do alerta (até 48 calibrações)
     rs = d["ind_municipio_setor"].merge(
         d["est_sensibilidade_pares"][["cod_ibge", "setor", "estabilidade", "pct_cenarios_alerta"]],
         on=["cod_ibge", "setor"], how="left")

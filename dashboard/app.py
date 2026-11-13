@@ -399,9 +399,9 @@ with abas[2]:
         barras(dfc, "n", [COR_DIAG[i] for i in dfc["rot"]], "Quantos polos em cada diagnóstico",
                lambda v: fmt_int(v), altura=300)
         st.markdown(f"<div class='insight' style='--c:{AZUL}'>🛡️ <b>Robustez:</b> cada alerta foi recalculado em "
-                    f"36 calibrações do índice. <b>{int(RSF['robusto'].sum())}</b> dos "
-                    f"{int(q['diagnostico'].isin(acionamento.ALERTAS).sum())} alertas deste recorte se mantêm em pelo "
-                    "menos 80% delas e são tratados como prioridade.</div>", unsafe_allow_html=True)
+                    f"até 48 calibrações do índice (4 métodos × 4 volumes mínimos × 3 limiares). <b>{int(RSF['robusto'].sum())}</b> dos "
+                    f"{int(q['diagnostico'].isin(acionamento.ALERTAS).sum())} alertas deste recorte se mantêm em mais "
+                    "de 80% das calibrações aplicáveis e são tratados como prioridade.</div>", unsafe_allow_html=True)
 
     tab = q.sort_values(["robusto", "indice_pressao"], ascending=False)[
         ["setor", "municipio_nome", "diagnostico", "robusto", "movimentacoes", "saldo", "saldo_10k_hab",
@@ -424,8 +424,9 @@ with abas[2]:
 # ============================== 3. Renda e escolaridade ==============================
 with abas[3]:
     st.markdown("<div class='titulo'>Renda e escolaridade explicam o gargalo?</div>"
-                "<div class='lead'>391 mil desligamentos analisados: a chance de pedir demissão cai com o salário e "
-                "quase não muda com a escolaridade.</div>", unsafe_allow_html=True)
+                "<div class='lead'>391 mil desligamentos analisados: quanto maior o salário, menor a proporção de saídas a "
+                "pedido. Por escolaridade a diferença descritiva é pequena, mas, com os demais fatores controlados, "
+                "o ensino superior aparece associado a <b>mais</b> pedidos de demissão.</div>", unsafe_allow_html=True)
     ps = d["est_pedido_salario_escolaridade"]
     c1, c2 = st.columns(2)
     with c1:
@@ -482,10 +483,12 @@ with abas[3]:
                                marker_color=[AZUL if v < 0 else LARANJA for v in lg["ef"]],
                                text=[f"{v:+.0f}%".replace("-", "−") for v in lg["ef"]], textposition="outside",
                                textfont=dict(size=16, color=TEXTO), cliponaxis=False))
-        fig.update_layout(title="Efeito na chance de pedir demissão (regressão)",
+        fig.update_layout(title="Associação com as odds de a saída ser a pedido (regressão)",
                           xaxis=dict(visible=False, range=[-40, 100]),
                           yaxis=dict(showgrid=False, tickfont=dict(size=15, color=TEXTO)))
         plot(fig, 440)
+        st.markdown("<div class='nota'>Razão de chances (odds) entre trabalhadores já desligados, com controles "
+                    "de setor, porte, idade e sexo. Indica associação, não causalidade.</div>", unsafe_allow_html=True)
 
 # ============================== 4. Macrofamílias (IA) ==============================
 with abas[4]:
@@ -609,7 +612,10 @@ with abas[6]:
 - Regras de acionamento em `dashboard/acionamento.py`.
 
 **Limites**
-- O CAGED mede fluxo, não vagas abertas: o apagão é inferido pela retenção e pelo salário.
+- O CAGED mede fluxo, não vagas abertas: "apagão" aqui é um **indício de pressão** sobre a mão de obra
+  (retenção, reposição e salário), não prova de falta de profissionais. Serve para priorizar e investigar.
+- O modelo de regressão olha só quem já foi desligado: estima as odds de a saída ser a pedido, não a
+  probabilidade de um empregado sair.
 - Associação não é causalidade.
 - Sem fontes externas, o painel não usa mapa nem regiões geográficas. Eles ficam no filtro **Bônus**,
   sinalizados como fonte externa (IBGE).

@@ -45,9 +45,9 @@ Desafio prático de análise de dados e inteligência artificial, Bacharelado em
 |---|---|---|
 | 1 | **A indústria girou o quadro sem crescer** | 835.776 movimentações na indústria de transformação em 12 meses para um saldo de apenas **+1.098** vagas |
 | 2 | **O crescimento é operacional e concentrado em poucos municípios** | Navegantes (+2.381), Joinville (+1.480) e Chapecó (+1.307) lideram o saldo industrial. Ocupações operacionais: +6.326. Técnicos: −2.729, gestão: −1.699, nível superior: −800 |
-| 3 | **O apagão é de retenção, não de diploma** | Agroindústria, produção de base, têxtil e vestuário: cerca de 55 a 60% dos desligamentos são **a pedido** do trabalhador, salário de admissão de R$ 2,0 a 2,2 mil e menos de 2% dos admitidos com ensino superior |
-| 4 | **44 polos em alerta robusto** | Dos 538 polos município × setor com 300+ movimentações, 70 ficam em alerta no cenário padrão e 44 se mantêm em pelo menos 80% das 36 calibrações testadas. Os maiores: alimentos em Itapiranga (78% a pedido), veículos em Campo Alegre e Sangão, vestuário em Timbó, Tijucas, Morro da Fumaça e Treze de Maio |
-| 5 | **Salário segura; diploma, não** | Quem ganha até ~R$ 2 mil pede demissão em 57% das saídas; acima de ~R$ 3,6 mil, em 41%. Entre escolaridades, a taxa fica entre 51% e 55%. Pagar 10% acima da mediana da ocupação reduz em ~6,5% a chance de pedido de demissão (regressão logística, 391 mil desligamentos) |
+| 3 | **Os sinais de pressão aparecem na retenção, não na falta de diploma** | Agroindústria, produção de base, têxtil e vestuário: cerca de 55 a 60% dos desligamentos são **a pedido** do trabalhador, salário de admissão de R$ 2,0 a 2,2 mil e menos de 2% dos admitidos com ensino superior |
+| 4 | **44 polos em alerta robusto** | Dos 538 polos município × setor com 300+ movimentações, 70 ficam em alerta no cenário padrão e 44 se mantêm em alerta em mais de 80% das calibrações aplicáveis (até 48 combinações de método, volume mínimo e limiar). Os maiores: alimentos em Itapiranga (78% a pedido), veículos em Campo Alegre e Sangão, vestuário em Timbó, Tijucas, Morro da Fumaça e Treze de Maio |
+| 5 | **Remuneração e escolaridade: o que os dados revelam sobre a rotatividade** | Nos desligamentos, quem ganha até ~R$ 2 mil sai a pedido em 57% dos casos; acima de ~R$ 3,6 mil, em 41%. Por escolaridade, a taxa descritiva fica entre 51% e 55%. Na regressão logística (391 mil desligamentos, com controles), salário 10% acima da mediana da ocupação está associado a odds ~6,5% menores de a saída ser a pedido, e ensino superior a odds ~59% maiores (o profissional qualificado é disputado). São associações, não efeitos causais |
 | 6 | **Polos em expansão acelerada** | Veículos (+1.620) e outros equipamentos de transporte (+625) em Navegantes; alimentos em Chapecó (+1.273) e Guatambú (+551) |
 
 ---
@@ -86,9 +86,9 @@ Visual: base branca com azul, letras grandes e cores vivas nos gráficos (`.stre
 
 | Item | Status |
 |:---:|:---:|
-| Scripts ou notebook da análise | pendente |
-| Painel analítico (dashboard) | pendente |
-| Pitch de 3 minutos em slides | pendente |
+| Scripts ou notebook da análise | concluído: `notebooks/raio_x_industria_sc.ipynb` e `backend/` |
+| Painel analítico (dashboard) | concluído: [raio-x-industrial-sc.streamlit.app](https://raio-x-industrial-sc.streamlit.app) (`dashboard/app.py`) |
+| Pitch de 3 minutos em slides | em revisão final |
 
 Todas as entregas saem deste repositório Git público.
 
@@ -271,9 +271,10 @@ Controla setor, porte do estabelecimento, faixa etária e sexo, com erros-padrã
 | `n`, `pseudo_r2` | Tamanho da amostra e ajuste do modelo (McFadden) |
 
 Leitura:
-- Um salário 10% maior reduz a chance de pedir demissão. O efeito é de cerca de 8% quando vem da ocupação (`log_sal_cbo` = 0,92) e de cerca de 6% quando o trabalhador ganha acima dos colegas da mesma CBO (`sal_rel_cbo` = 0,94).
-- Com salário igual, quem tem superior tem 1,67 vez a chance de pedir demissão de quem tem até o fundamental.
-- O pseudo-R² de 0,03 mostra que a decisão individual depende de fatores que a base não tem, como o tempo de casa.
+- Salário 10% maior está associado a odds menores de a saída ser a pedido: cerca de 8% quando vem da ocupação (`log_sal_cbo`, razão 0,92) e cerca de 6,5% quando o trabalhador ganha acima dos colegas da mesma CBO (`sal_rel_cbo`, razão 0,935).
+- Com salário igual, quem tem superior tem odds 1,59 vez maiores de a saída ser a pedido do que quem tem até o fundamental.
+- Como a amostra é de desligados, os efeitos são sobre as odds de a saída ser a pedido, não sobre a probabilidade de sair; e indicam associação, não causa.
+- O pseudo-R² de 0,02 mostra que a decisão individual depende de fatores que a base não tem, como o tempo de casa.
 
 ### 2. Sensibilidade do Índice de Pressão
 
@@ -368,7 +369,9 @@ Leitura:
 ---
 
 ## Limites da análise
-- O CAGED mede **fluxo** de admissões e desligamentos, não estoque de empregos nem vagas abertas. Por isso o "apagão" é inferido pelo comportamento de retenção e salário.
+- O CAGED mede **fluxo** de admissões e desligamentos, não estoque de empregos nem vagas abertas. Por isso o "apagão" do projeto é um **indício de pressão** sobre a mão de obra (retenção, reposição e salário), não prova de falta de profissionais. O índice serve para priorizar e investigar.
+- A regressão logística usa só trabalhadores já desligados: estima as odds de a saída ser a pedido, não a probabilidade de um empregado sair. Os coeficientes indicam associação, não causalidade.
+- As recomendações de parceiros são hipóteses de ação derivadas dos indicadores, a validar com as empresas de cada polo.
 - Só foi fornecida a base MOV; não houve desconto das exclusões (EXC).
 - O prêmio salarial tende a ser negativo, porque quem sai tem mais tempo de casa. O sinal está na comparação entre setores e municípios.
 - O índice é relativo à própria indústria catarinense e não deve ser comparado com outros estados.

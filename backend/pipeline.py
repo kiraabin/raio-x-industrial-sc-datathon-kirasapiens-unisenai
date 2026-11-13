@@ -131,8 +131,9 @@ def carregar_caged(registro, mun: pd.DataFrame | None = None) -> pd.DataFrame:
 
 
 def enriquecer(df: pd.DataFrame, mun: pd.DataFrame) -> pd.DataFrame:
-    df = df.merge(mun[["cod_caged", "cod_ibge", "municipio_nome", "regiao_imediata",
-                       "regiao_intermediaria"]],
+    # Regiões do IBGE são opcionais (fonte externa, só para o filtro Bônus)
+    externos = [c for c in ["regiao_imediata", "regiao_intermediaria"] if c in mun.columns]
+    df = df.merge(mun[["cod_caged", "cod_ibge", "municipio_nome"] + externos],
                   left_on="município", right_on="cod_caged", how="left")
     sub = df["subclasse"].astype(str).str.zfill(7)
     df["divisao_cnae"] = sub.str[:2]

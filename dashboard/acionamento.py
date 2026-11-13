@@ -5,13 +5,15 @@ sempre com a justificativa tirada dos indicadores.
 
 Regras (avaliadas nesta ordem):
   Polos em alerta (Apagão ou Expansão sob pressão)
-    0. Alerta frágil (some em mais de 20% das 36 calibrações do índice)
+    0. Alerta frágil (em alerta em 80% ou menos das calibrações aplicáveis, de até 48)
          → sem acionamento: monitorar e confirmar no próximo trimestre.
     1. Salário de entrada ≥ 3% abaixo da mediana estadual do setor
          → Empresas do polo (via sindicato patronal): revisar piso de entrada.
-           Evidência: +10% sobre a mediana da ocupação reduz ~6% a chance de pedido de demissão.
+           Evidência (associação, não causa): entre os desligados, salário 10% acima da mediana da
+           ocupação está associado a odds ~6,5% menores de a saída ser a pedido.
     2. Salário na média do setor, mas saídas a pedido acima da média de SC
-         → Awtra: integração, compliance e formação de lideranças (o problema não é o piso).
+         → Awtra: integração, compliance e formação de lideranças. É uma hipótese a investigar com as
+           empresas: como o piso não está abaixo do setor, a causa provável está em outro ponto.
   Polos em expansão acelerada
     3. Saldo de pelo menos 200 vagas
          → UniSENAI: formar para a família de ocupações que mais está sendo contratada.
@@ -71,7 +73,7 @@ def calcular(ind: pd.DataFrame, rs: pd.DataFrame, min_mov: int = 300,
             if not robusto:
                 parceiro = "Monitorar"
                 cen = getattr(p, "pct_cenarios_alerta", np.nan)
-                porque = (f"Alerta frágil: aparece em só {cen * 100:.0f}% das 36 calibrações do índice. "
+                porque = (f"Alerta frágil: aparece em só {cen * 100:.0f}% das calibrações aplicáveis do índice. "
                           "Confirmar no próximo trimestre antes de mobilizar parceiros.")
                 acao = "Acompanhar no próximo trimestre."
                 meta = "—"
@@ -80,15 +82,16 @@ def calcular(ind: pd.DataFrame, rs: pd.DataFrame, min_mov: int = 300,
                 porque = (f"Salário de entrada de R$ {_br(p.salario_mediano_adm)}, {abs(gap) * 100:.0f}% abaixo da "
                           f"mediana do setor em SC (R$ {_br(mediana)}), e {p.pct_pedido_demissao * 100:.0f}% das "
                           "saídas são pedido do trabalhador.")
-                acao = "Revisar o piso de entrada: +10% sobre a mediana da ocupação reduz ~6% a chance de pedido."
-                meta = "Salário de entrada ≥ mediana do setor; −10% de pedidos"
+                acao = ("Revisar o piso de entrada. Nos dados, salário 10% acima da mediana da ocupação está associado "
+                        "a odds ~6,5% menores de pedido de demissão (associação, não garantia de efeito).")
+                meta = "Acompanhar: salário de entrada vs. mediana do setor e % de saídas a pedido, a cada trimestre"
             else:
                 parceiro = "Awtra"
                 porque = (f"O salário já está na média do setor (R$ {_br(p.salario_mediano_adm)}), mas "
                           f"{p.pct_pedido_demissao * 100:.0f}% das saídas são a pedido (SC: {pct_sc * 100:.0f}%). "
-                          "O gargalo é integração e liderança, não piso.")
+                          "Como o piso não está abaixo do setor, a hipótese a investigar é integração e liderança.")
                 acao = "Onboarding de compliance e segurança e formação de lideranças de linha."
-                meta = "−10% de pedidos nos primeiros 6 meses de casa"
+                meta = "Acompanhar: % de saídas a pedido nos primeiros 6 meses de casa, a cada trimestre"
         else:
             fam, n_fam = fam_adm.get(k, ("—", 0))
             impacto, impacto_txt = p.saldo, f"+{_br(p.saldo)} vagas/ano"

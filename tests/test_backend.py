@@ -152,3 +152,17 @@ def test_manifest_lista_arquivos_existentes():
     for a in m["arquivos"].values():
         dados = json.loads((P / "api" / a["arquivo"]).read_text())
         assert len(dados) == a["linhas"]
+
+
+def test_pipeline_funciona_sem_regioes_externas():
+    """Sem as regiões do IBGE (fonte externa), a junção usa só a base municipal do desafio."""
+    import pipeline
+    mun = pipeline.carregar_municipios().drop(
+        columns=["cod_reg_imediata", "regiao_imediata", "cod_reg_intermediaria", "regiao_intermediaria"],
+        errors="ignore")
+    df = pd.DataFrame({"município": mun["cod_caged"].head(3).to_numpy(), "subclasse": [1011201] * 3,
+                       "cbo2002ocupação": [784205] * 3, "saldomovimentação": [1, -1, -1],
+                       "tipomovimentação": [10, 40, 31], "salário": [2000.0] * 3, "horascontratuais": [44] * 3,
+                       "indtrabintermitente": [0] * 3, "indicadoraprendiz": [0] * 3, "indtrabparcial": [0] * 3})
+    e = pipeline.enriquecer(df, mun)
+    assert e["cod_ibge"].notna().all() and "regiao_imediata" not in e.columns

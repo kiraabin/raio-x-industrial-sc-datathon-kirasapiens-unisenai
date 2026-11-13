@@ -392,6 +392,8 @@ pd.read_csv(P + 'log_limpeza.csv')
 
 
     Indústria de transformação (seção C)                       835,776
+
+
      ...das quais com salário válido p/ comparações            781,353
 
 
@@ -1062,7 +1064,7 @@ pd.crosstab(x['macrofamilia'], x['grande_grupo']).loc[:, lambda t: t.sum() > 100
 | % saídas a pedido | desligamentos tipo 40 ÷ desligamentos | trabalhador sai porque tem opção |
 | Índice de reposição | desligamentos ÷ admissões | perto de 1 = contrata só para repor |
 | Prêmio salarial ajustado | média ponderada, por CBO, de log(mediana adm ÷ mediana desl) | empresa paga mais para repor |
-| **Índice de Pressão** | média dos z-scores dos três acima | > 0,5 = sinal de apagão |
+| **Índice de Pressão** | média dos z-scores dos três acima | > 0,5 = indício de pressão ("apagão") |
 | **Índice de Expansão** | z-score do saldo por 10 mil hab. | > 0,5 = expansão acelerada |
 
 
@@ -1403,7 +1405,7 @@ ms[ms['diagnostico'] == 'Expansão acelerada'].nlargest(8, 'saldo')[cols].round(
 
 
 
-**Robustez:** cada alerta foi recalculado em 36 calibrações (limiar, volume mínimo e método). Só os que aparecem em pelo menos 80% delas são tratados como **alerta robusto**.
+**Robustez:** cada alerta foi recalculado em até 48 calibrações (4 métodos × 4 volumes mínimos × 3 limiares). Cada polo entra só nas calibrações em que tem volume suficiente (12, 24, 36 ou 48). Os que ficam em alerta em **mais de 80%** das calibrações aplicáveis são tratados como **alerta robusto**.
 
 
 ```python
@@ -1786,7 +1788,7 @@ pd.read_csv(P + 'est_logit_pedido.csv')[['termo', 'razao_chance', 'ic95_inf', 'i
 
 
 
-**Leitura:** nas faixas salariais mais baixas (Q1–Q2) 57% das saídas são pedidos; na mais alta (Q5), 41%. Por escolaridade a taxa fica entre 51% e 55%. Na regressão logística (controles: setor, porte, idade, sexo; erros agrupados por CBO), **pagar 10% acima da mediana da mesma ocupação reduz a chance de pedido de demissão em ~6,5%** (razão de chances 0,935), e quem tem superior tem 59% mais chance de pedir para sair: é disputado. Entre os 538 polos município × setor, salário de entrada e % a pedido têm correlação de Spearman de −0,38, e a % de admitidos só com fundamental, de +0,40.
+**Leitura:** nas faixas salariais mais baixas (Q1–Q2) 57% das saídas são pedidos; na mais alta (Q5), 41%. Por escolaridade a taxa fica entre 51% e 55%. Na regressão logística (controles: setor, porte, idade, sexo; erros agrupados por CBO), **salário 10% acima da mediana da mesma ocupação está associado a odds ~6,5% menores de a saída ser a pedido** (razão de chances 0,935), e ensino superior a odds 59% maiores (o profissional qualificado é disputado). Como a amostra é de desligados, isso fala das odds de a saída ser a pedido, não da probabilidade de um empregado sair, e indica associação, não causa. Entre os 538 polos município × setor, salário de entrada e % a pedido têm correlação de Spearman de −0,38, e a % de admitidos só com fundamental, de +0,40.
 
 
 ```python
@@ -2166,14 +2168,14 @@ ac[ac['parceiro'] != 'Monitorar'][['setor', 'municipio_nome', 'diagnostico', 'pa
 
 ## 7. Conclusões, recomendações e limites
 1. **A indústria gira o quadro mas não cresce:** 835.776 movimentações para +1.098 vagas, ou 761 movimentações por vaga criada.
-2. **O apagão é de retenção:** 51% das saídas são pedidos do trabalhador. Dos 538 polos município × setor analisados, **44 estão em alerta robusto**, liderados por alimentos em Itapiranga (78% a pedido), veículos em Campo Alegre e Sangão e vestuário em Timbó, Tijucas, Morro da Fumaça e Treze de Maio.
+2. **Os sinais de pressão estão na retenção:** 51% das saídas são pedidos do trabalhador. Dos 538 polos município × setor analisados, **44 estão em alerta robusto** (mais de 80% das calibrações aplicáveis), liderados por alimentos em Itapiranga (78% a pedido), veículos em Campo Alegre e Sangão e vestuário em Timbó, Tijucas, Morro da Fumaça e Treze de Maio.
 3. **Expansão concentrada:** veículos/equipamentos de transporte em Navegantes (+1.620 e +625) e alimentos em Chapecó (+1.273) e Guatambú (+551).
-4. **Salário segura, diploma não:** a taxa de pedido cai de 57% para 41% do menor ao maior salário e quase não varia por escolaridade.
+4. **Remuneração e escolaridade:** a proporção de saídas a pedido cai de 57% para 41% do menor ao maior salário e varia pouco por escolaridade na comparação descritiva; com controles, o ensino superior aparece associado a mais pedidos.
 5. **IA:** Agroindústria e Alimentos, Produção de Base e Têxtil/Vestuário perdem 55–60% por pedido e pagam ~R\$ 2,1 mil na entrada.
 
-**Recomendações (FIESC como hub):** UniSENAI com formação nos polos em expansão; empresas do polo revendo piso onde o salário de entrada está abaixo do setor; Awtra com integração e lideranças onde o salário está na média e a rotatividade segue alta; Way2 como apoio em polos eletrointensivos que crescem.
+**Recomendações (FIESC como hub):** UniSENAI com formação nos polos em expansão; empresas do polo revendo piso onde o salário de entrada está abaixo do setor; Awtra com integração e lideranças onde o salário está na média e a rotatividade segue alta (hipótese a validar com as empresas); Way2 como apoio em polos eletrointensivos que crescem.
 
-**Limites:** só as bases do desafio entram no diagnóstico; o CAGED mede fluxo, não vagas abertas; só a base MOV foi fornecida; correlação e regressão indicam associação, não causalidade.
+**Limites:** só as bases do desafio entram no diagnóstico; o CAGED mede fluxo, não vagas abertas, então "apagão" é indício de pressão, não prova de falta de profissionais; só a base MOV foi fornecida; correlação e regressão indicam associação, não causalidade.
 
 ## Apêndice bônus: fontes externas (fora das regras do desafio)
 Esta seção **não entra no diagnóstico nem nos indicadores principais**. Ela mostra o que muda ao cruzar os mesmos dados com as regiões geográficas imediatas e intermediárias do IBGE (2017), arquivo `data/externos/regioes_ibge.csv`. Se o arquivo for removido, o pipeline roda normalmente e esta célula é pulada.
